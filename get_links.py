@@ -6,7 +6,8 @@ from selenium.webdriver.common.by import By
 from selenium import webdriver
 import time
 
-URL = f"https://cybercook.com.br/receitas"
+# o URL vai ter que ser de mais de um site
+URL = f'https://cybercook.com.br/receitas'
 FILE_NAME = 'links_receitas.txt'
 EMPTY_LINKS = 'recipe_empty.txt'
 PATTERN = 'cybercook.com.br/receitas/'

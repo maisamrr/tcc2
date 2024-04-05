@@ -1,4 +1,4 @@
-from get_recipes import FILE_NAME, extract_links_to_file
+from get_links import FILE_NAME, extract_links_to_file
 
 def main():
     # Obter todos os links do site
