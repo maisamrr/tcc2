@@ -8,7 +8,7 @@ import time
 
 # o URL vai ter que ser de mais de um site
 URL = f'https://cybercook.com.br/receitas'
-FILE_NAME = 'links_receitas.txt'
+FILE_NAME = 'links_receitas_cybercook.txt'
 EMPTY_LINKS = 'recipe_empty.txt'
 PATTERN = 'cybercook.com.br/receitas/'
 
@@ -18,7 +18,7 @@ def connect(url=URL):
         driver.get(url)
         time.sleep(5)
     except TimeoutException:
-        print('new connection try')
+        print('Estabelecendo nova conexão')
         driver.get(url)
         time.sleep(5)
 
@@ -71,3 +71,11 @@ def extract_links_to_file(file_name):
 
 if __name__ == '__main__':
     pass
+
+def main():
+    # Obter todos os links do site
+    links_file = FILE_NAME
+    extract_links_to_file(links_file)
+    print('Programa concluído')
+
+main()
