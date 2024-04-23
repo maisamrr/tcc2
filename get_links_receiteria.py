@@ -1,9 +1,7 @@
-
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
@@ -35,45 +33,38 @@ def get_links_from_one_page(my_webpage):
         pass
     return recipe_links
 
-if __name__ == '__main__':
-    pass
+def save_links_to_file(links, file_name):
+    with open(file_name, 'w') as file:
+        for link in links:
+            file.write(link + '\n')
 
 def main():
-    print('** Conecta ao driver **')
     mydriver = connect()
-    print('** Conexão ok **')
 
     all_pages_links = get_links_from_one_page(mydriver)
-    # print(all_pages_links)
-    print('Qtd de receitas coletadas: ', len(all_pages_links))
 
-    last_height = mydriver.execute_script("return document.body.scrollHeight")
-    qt_recipes = 50
-    
-
-    while qt_recipes > len(all_pages_links):
+    qt_recipes = 1000
+    while len(all_pages_links) < qt_recipes:
         mydriver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        print('Final da página.')
-
         time.sleep(10)
-
-        print('Esperou carregar tudo da página.')
-
         time.sleep(10)
 
         load_more_button = WebDriverWait(mydriver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button.alm-load-more-btn')))
 
         try:
             mydriver.execute_script("arguments[0].scrollIntoView(true);", load_more_button)
-
             time.sleep(10)
-
             load_more_button.click()
-            print('Clicou no botão "Carregar Mais".')
         except Exception as e:
             print(f'Erro ao clicar no botão "Carregar Mais": {e}')
             break
+        len(all_pages_links)
+        all_pages_links = get_links_from_one_page(mydriver)
 
+    save_links_to_file(all_pages_links, FILE_NAME)
+    print('Qtd total de receitas coletadas: ', len(all_pages_links))
+    print(f'Links salvos em "{FILE_NAME}"')
     print('Programa concluído')
 
-main()
+if __name__ == '__main__':
+    main()

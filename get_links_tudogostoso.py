@@ -35,7 +35,7 @@ def get_links_from_one_page(my_webpage):
         pass
     return recipe_links
 
-def get_links_from_site(recipe_driver, num_pages=51):
+def get_links_from_site(recipe_driver, num_pages=150):
     all_pages_links = []
     for i in range(num_pages):
         page = get_links_from_one_page(recipe_driver)
