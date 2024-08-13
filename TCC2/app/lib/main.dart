@@ -1,3 +1,4 @@
+import 'package:app/screens/cadastro.dart';
 import 'package:flutter/material.dart';
 import 'package:app/screens/login.dart';
 
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => Login(),
+        '/cadastro': (context) => Cadastro(),
         '/home': (context) => const MyHomePage(title: 'Flutter Demo Home Page'),
       },
     );

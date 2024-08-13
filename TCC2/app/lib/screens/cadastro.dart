@@ -1,19 +1,20 @@
 import 'package:app/const.dart';
 import 'package:flutter/material.dart';
 
-class Login extends StatefulWidget {
-  Login({super.key});
+class Cadastro extends StatefulWidget {
+  const Cadastro({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _LoginState createState() => _LoginState();
+  _CadastroState createState() => _CadastroState();
 }
 
-class _LoginState extends State<Login> {
+class _CadastroState extends State<Cadastro> {
   final _formKey = GlobalKey<FormState>();
+  final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
   final _senhaController = TextEditingController();
 
+  bool agree = false;
   bool _obscurePassword = true;
 
   @override
@@ -21,12 +22,25 @@ class _LoginState extends State<Login> {
     return Scaffold(
       backgroundColor: backgroundIdColor,
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(32, 104, 32, 80),
+        padding: const EdgeInsets.fromLTRB(32, 40, 32, 80),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              GestureDetector(
+                child: Icon(
+                  Icons.arrow_back,
+                  size: 32,
+                  color: darkGreyColor,
+                ),
+                onTap: () {
+                  Navigator.of(context).pushReplacementNamed('/');
+                },
+              ),
+              // espacamento
+              const SizedBox(height: 40),
+              // titulo
               Text(
                 'Notas\nculinárias',
                 style: TextStyle(
@@ -36,7 +50,43 @@ class _LoginState extends State<Login> {
                 textAlign: TextAlign.left,
               ),
               // espacamento
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              // titulo
+              Text(
+                'Complete seu cadastro',
+                style: TextStyle(fontSize: 18, color: darkGreyColor),
+                textAlign: TextAlign.left,
+              ),
+              // espacamento
+              const SizedBox(height: 24),
+              // nome
+              TextFormField(
+                controller: _nomeController,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                    labelText: 'Nome',
+                    labelStyle: const TextStyle(
+                      color: Color(0xFFADB5BD),
+                    ),
+                    fillColor: Colors.white,
+                    filled: true,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFDEE2E6),
+                        width: 1.0,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFDEE2E6),
+                        width: 1.0,
+                      ),
+                    )),
+              ),
+              // espacamento
+              const SizedBox(height: 16),
               // email
               TextFormField(
                 controller: _emailController,
@@ -65,7 +115,7 @@ class _LoginState extends State<Login> {
               ),
               // espacamento
               const SizedBox(height: 16),
-              //campo senha
+              // senha
               TextFormField(
                 controller: _senhaController,
                 keyboardType: TextInputType.text,
@@ -110,14 +160,13 @@ class _LoginState extends State<Login> {
               ),
               // espacamento
               const SizedBox(height: 16),
-              //botão login
+              // login
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // logica de login
-                    }
+                    Navigator.of(context).pushReplacementNamed('/');
+                    // falta a logica
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFB83E8),
@@ -132,36 +181,12 @@ class _LoginState extends State<Login> {
                   child: const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     child: Text(
-                      'Login',
+                      'Cadastrar',
                       style: TextStyle(
                         color: Color(0xFF343A40),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ),
-              ),
-              // espacamento
-              const SizedBox(height: 24),
-              // esqueci senha
-              TextButton(
-                onPressed: () {},
-                child: Text(
-                  'Esqueci minha senha',
-                  style: TextStyle(
-                    color: darkGreyColor,
-                  ),
-                ),
-              ),
-              // fazer cadastro
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushReplacementNamed('/cadastro');
-                },
-                child: Text(
-                  'Fazer cadastro',
-                  style: TextStyle(
-                    color: darkGreyColor,
                   ),
                 ),
               ),
