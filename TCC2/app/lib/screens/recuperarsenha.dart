@@ -5,7 +5,7 @@ class RecuperarSenha extends StatefulWidget {
   const RecuperarSenha({super.key});
 
   @override
-  _RecuperarSenhaState createState() => _RecuperarSenhaState();
+  State<RecuperarSenha> createState() => _RecuperarSenhaState();
 }
 
 class _RecuperarSenhaState extends State<RecuperarSenha> {
@@ -30,7 +30,7 @@ class _RecuperarSenhaState extends State<RecuperarSenha> {
                   color: darkGreyColor,
                 ),
                 onTap: () {
-                  Navigator.of(context).pushReplacementNamed('/');
+                  Navigator.of(context).pushReplacementNamed('/login');
                 },
               ),
               // espacamento
@@ -87,7 +87,7 @@ class _RecuperarSenhaState extends State<RecuperarSenha> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pushReplacementNamed('/');
+                    Navigator.of(context).pushReplacementNamed('/login');
                     // falta a logica
                   },
                   style: ElevatedButton.styleFrom(

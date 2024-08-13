@@ -1,4 +1,5 @@
 import 'package:app/screens/cadastro.dart';
+import 'package:app/screens/inicio.dart';
 import 'package:app/screens/recuperarsenha.dart';
 import 'package:flutter/material.dart';
 import 'package:app/screens/login.dart';
@@ -20,7 +21,8 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => Login(),
+        '/': (context) => Inicio(),
+        '/login': (context) => Login(),
         '/cadastro': (context) => Cadastro(),
         '/recuperarsenha': (context) => RecuperarSenha(),
         '/home': (context) => const MyHomePage(title: 'Flutter Demo Home Page'),

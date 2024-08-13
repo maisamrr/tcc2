@@ -5,7 +5,7 @@ class Cadastro extends StatefulWidget {
   const Cadastro({super.key});
 
   @override
-  _CadastroState createState() => _CadastroState();
+  State<Cadastro> createState() => _CadastroState();
 }
 
 class _CadastroState extends State<Cadastro> {
@@ -35,7 +35,7 @@ class _CadastroState extends State<Cadastro> {
                   color: darkGreyColor,
                 ),
                 onTap: () {
-                  Navigator.of(context).pushReplacementNamed('/');
+                  Navigator.of(context).pushReplacementNamed('/login');
                 },
               ),
               // espacamento
@@ -165,7 +165,7 @@ class _CadastroState extends State<Cadastro> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pushReplacementNamed('/');
+                    Navigator.of(context).pushReplacementNamed('/login');
                     // falta a logica
                   },
                   style: ElevatedButton.styleFrom(

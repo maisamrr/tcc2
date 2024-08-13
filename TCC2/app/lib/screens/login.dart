@@ -2,7 +2,7 @@ import 'package:app/const.dart';
 import 'package:flutter/material.dart';
 
 class Login extends StatefulWidget {
-  Login({super.key});
+  const Login({super.key});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -31,6 +31,7 @@ class _LoginState extends State<Login> {
                 'Notas\nculinárias',
                 style: TextStyle(
                     fontSize: 48,
+                    height: 1.2,
                     fontWeight: FontWeight.bold,
                     color: darkGreyColor),
                 textAlign: TextAlign.left,
