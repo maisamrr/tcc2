@@ -145,7 +145,9 @@ class _LoginState extends State<Login> {
               const SizedBox(height: 24),
               // esqueci senha
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pushReplacementNamed('/recuperarsenha');
+                },
                 child: Text(
                   'Esqueci minha senha',
                   style: TextStyle(
