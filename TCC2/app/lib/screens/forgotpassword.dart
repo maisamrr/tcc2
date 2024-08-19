@@ -1,14 +1,14 @@
 import 'package:app/const.dart';
 import 'package:flutter/material.dart';
 
-class RecuperarSenha extends StatefulWidget {
-  const RecuperarSenha({super.key});
+class ForgotPassword extends StatefulWidget {
+  const ForgotPassword({super.key});
 
   @override
-  State<RecuperarSenha> createState() => _RecuperarSenhaState();
+  State<ForgotPassword> createState() => _ForgotPasswordState();
 }
 
-class _RecuperarSenhaState extends State<RecuperarSenha> {
+class _ForgotPasswordState extends State<ForgotPassword> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
 

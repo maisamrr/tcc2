@@ -118,6 +118,8 @@ class _LoginState extends State<Login> {
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       // logica de login
+                      Navigator.of(context).pushReplacementNamed('/home');
+
                     }
                   },
                   style: ElevatedButton.styleFrom(

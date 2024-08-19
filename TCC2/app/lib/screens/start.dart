@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
-class Inicio extends StatefulWidget {
-  const Inicio({super.key});
+class Start extends StatefulWidget {
+  const Start({super.key});
 
   @override
-  State<Inicio> createState() => _InicioState();
+  State<Start> createState() => _StartState();
 }
 
-class _InicioState extends State<Inicio> {
+class _StartState extends State<Start> {
   int _currentIndex = 0;
   final CarouselController _controller =
       CarouselController(); // Adicionado o CarouselController

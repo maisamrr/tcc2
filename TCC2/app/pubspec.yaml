@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.6
   carousel_slider: ^4.2.1
+  flutter_svg: ^1.0.3
+  camera: ^0.10.0+2 
 
 dev_dependencies:
   flutter_test:
@@ -24,6 +26,9 @@ flutter:
     - assets/images/back02.png
     - assets/images/back03.png
     - assets/images/back04.png
+    - assets/images/home.svg
+    - assets/images/camera.svg
+    - assets/images/receipt.svg
     - assets/fonts/
   fonts:
     - family: PP Neue Montreal
@@ -31,4 +36,18 @@ flutter:
         - asset: assets/fonts/PPNeueMontreal-Book.otf
           weight: 400
         - asset: assets/fonts/PPNeueMontreal-Bold.otf
+          weight: 700
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.otf
+          weight: 400
+        - asset: assets/fonts/Inter-Italic.otf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/Inter-Light.otf
+          weight: 300
+        - asset: assets/fonts/Inter-LightItalic.otf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/Inter-Bold.otf
           weight: 700

@@ -1,14 +1,14 @@
 import 'package:app/const.dart';
 import 'package:flutter/material.dart';
 
-class Cadastro extends StatefulWidget {
-  const Cadastro({super.key});
+class Subscribe extends StatefulWidget {
+  const Subscribe({super.key});
 
   @override
-  State<Cadastro> createState() => _CadastroState();
+  State<Subscribe> createState() => _SubscribeState();
 }
 
-class _CadastroState extends State<Cadastro> {
+class _SubscribeState extends State<Subscribe> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _emailController = TextEditingController();

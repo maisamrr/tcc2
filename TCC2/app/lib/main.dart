@@ -1,6 +1,9 @@
-import 'package:app/screens/cadastro.dart';
-import 'package:app/screens/inicio.dart';
-import 'package:app/screens/recuperarsenha.dart';
+import 'package:app/screens/fullrecipe.dart';
+import 'package:app/screens/scanqrcode.dart';
+import 'package:app/screens/subscribe.dart';
+import 'package:app/screens/start.dart';
+import 'package:app/screens/forgotpassword.dart';
+import 'package:app/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:app/screens/login.dart';
 
@@ -21,11 +24,15 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => Inicio(),
+        '/': (context) => Start(),
         '/login': (context) => Login(),
-        '/cadastro': (context) => Cadastro(),
-        '/recuperarsenha': (context) => RecuperarSenha(),
-        '/home': (context) => const MyHomePage(title: 'Flutter Demo Home Page'),
+        '/subscribe': (context) => Subscribe(),
+        '/forgotpassword': (context) => ForgotPassword(),
+        '/home': (context) => Home(),
+        '/fullrecipe': (context) => FullRecipe(),
+        '/scanqrcode': (context) => ScanQrCode(),
+
+
       },
     );
   }
