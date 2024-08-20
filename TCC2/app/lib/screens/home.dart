@@ -64,7 +64,6 @@ class _HomeState extends State<Home> {
       ],
       'onViewRecipe': () {},
     },
-    // Adicione mais receitas aqui conforme necessário
   ];
 
   @override
@@ -158,9 +157,11 @@ class _HomeState extends State<Home> {
                                     crossAxisCount: 2,
                                     crossAxisSpacing: 8,
                                     mainAxisSpacing: 8,
-                                    childAspectRatio: width < 600
-                                        ? 0.8
-                                        : 0.6, // Ajusta a proporção baseada na largura da tela
+                                    childAspectRatio: MediaQuery.of(context)
+                                            .size
+                                            .width /
+                                        (MediaQuery.of(context).size.height /
+                                            1.8),
                                   ),
                                   itemCount: recipes.length,
                                   itemBuilder: (context, index) {

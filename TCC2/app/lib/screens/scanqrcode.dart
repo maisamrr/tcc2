@@ -1,6 +1,7 @@
 import 'package:app/const.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class ScanQrCode extends StatefulWidget {
   const ScanQrCode({super.key});
@@ -23,7 +24,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
           children: [
             GestureDetector(
               onTap: () {
-                Navigator.of(context).pushReplacementNamed('/login');
+                Navigator.of(context).pushReplacementNamed('/home');
               },
               child: Icon(
                 Icons.arrow_back,
@@ -66,7 +67,11 @@ class _ScanQrCodeState extends State<ScanQrCode> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Implementação da lógica
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const QrCodeScanner(),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFB83E8),
@@ -95,5 +100,69 @@ class _ScanQrCodeState extends State<ScanQrCode> {
         ),
       ),
     );
+  }
+}
+
+class QrCodeScanner extends StatefulWidget {
+  const QrCodeScanner({super.key});
+
+  @override
+  State<QrCodeScanner> createState() => _QrCodeScannerState();
+}
+
+class _QrCodeScannerState extends State<QrCodeScanner> {
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  Barcode? result;
+  QRViewController? controller;
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    if (controller != null) {
+      controller!.pauseCamera();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: <Widget>[
+          Expanded(
+            flex: 5,
+            child: QRView(
+              key: qrKey,
+              onQRViewCreated: _onQRViewCreated,
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Center(
+              child: (result != null)
+                  ? Text('QR Code: ${result!.code}')
+                  : const Text('Escaneie um QR Code'),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void _onQRViewCreated(QRViewController controller) {
+    setState(() {
+      this.controller = controller;
+    });
+    controller.scannedDataStream.listen((scanData) {
+      setState(() {
+        result = scanData;
+      });
+      // Logica
+    });
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
   }
 }
