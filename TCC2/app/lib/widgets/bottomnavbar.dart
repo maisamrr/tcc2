@@ -33,7 +33,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
     },
     {
       'icon': 'assets/images/receipt.svg',
-      'route': '/receipts',
+      'route': '/allreceipts',
     },
   ];
 

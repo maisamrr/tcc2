@@ -1,3 +1,4 @@
+import 'package:app/screens/allreceipts.dart';
 import 'package:app/screens/fullrecipe.dart';
 import 'package:app/screens/scanqrcode.dart';
 import 'package:app/screens/subscribe.dart';
@@ -31,6 +32,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => Home(),
         '/fullrecipe': (context) => FullRecipe(),
         '/scanqrcode': (context) => ScanQrCode(),
+        '/allreceipts': (context) => AllReceipts(),
 
 
       },

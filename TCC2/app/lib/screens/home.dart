@@ -1,5 +1,4 @@
 import 'package:app/const.dart';
-import 'package:app/screens/fullrecipe.dart';
 import 'package:app/widgets/profilepicwidget.dart';
 import 'package:app/widgets/recipecard.dart';
 import 'package:flutter/material.dart';
@@ -68,8 +67,6 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-
     return Scaffold(
       backgroundColor: backgroundIdColor,
       body: Stack(
