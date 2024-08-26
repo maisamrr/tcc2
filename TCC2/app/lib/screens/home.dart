@@ -116,7 +116,7 @@ class _HomeState extends State<Home> {
                             ),
                             onTap: () {
                               Navigator.of(context)
-                                  .pushReplacementNamed('/configuracoes');
+                                  .pushReplacementNamed('/waitingforrecipe');
                             },
                           ),
                         ],

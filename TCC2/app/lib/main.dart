@@ -5,6 +5,7 @@ import 'package:app/screens/subscribe.dart';
 import 'package:app/screens/start.dart';
 import 'package:app/screens/forgotpassword.dart';
 import 'package:app/screens/home.dart';
+import 'package:app/screens/waitingforrecipe.dart';
 import 'package:flutter/material.dart';
 import 'package:app/screens/login.dart';
 
@@ -33,8 +34,7 @@ class MyApp extends StatelessWidget {
         '/fullrecipe': (context) => FullRecipe(),
         '/scanqrcode': (context) => ScanQrCode(),
         '/allreceipts': (context) => AllReceipts(),
-
-
+        '/waitingforrecipe': (context) => WaitingForRecipe(),
       },
     );
   }
