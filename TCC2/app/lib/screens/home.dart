@@ -1,6 +1,6 @@
 import 'package:app/const.dart';
 import 'package:app/widgets/profilepicwidget.dart';
-import 'package:app/widgets/recipecard.dart';
+import 'package:app/widgets/recipecardwidget.dart';
 import 'package:flutter/material.dart';
 import 'package:app/widgets/bottomnavbar.dart';
 
@@ -116,7 +116,7 @@ class _HomeState extends State<Home> {
                             ),
                             onTap: () {
                               Navigator.of(context)
-                                  .pushReplacementNamed('/waitingforrecipe');
+                                  .pushReplacementNamed('/allidentifiedrecipes');
                             },
                           ),
                         ],
@@ -162,7 +162,7 @@ class _HomeState extends State<Home> {
                                   ),
                                   itemCount: recipes.length,
                                   itemBuilder: (context, index) {
-                                    return RecipeCard(
+                                    return RecipeCardWidget(
                                       title: recipes[index]['title'],
                                       ingredients: recipes[index]
                                           ['ingredients'],

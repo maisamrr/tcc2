@@ -1,12 +1,12 @@
 import 'package:app/const.dart';
 import 'package:flutter/material.dart';
 
-class RecipeCard extends StatelessWidget {
+class RecipeCardWidget extends StatelessWidget {
   final String title;
   final List<String> ingredients;
   final VoidCallback onViewRecipe;
 
-  const RecipeCard({
+  const RecipeCardWidget({
     super.key,
     required this.title,
     required this.ingredients,

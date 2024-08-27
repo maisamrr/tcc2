@@ -1,5 +1,5 @@
+import 'package:app/screens/allidentifiedrecipes.dart';
 import 'package:app/screens/allreceipts.dart';
-import 'package:app/screens/fullrecipe.dart';
 import 'package:app/screens/scanqrcode.dart';
 import 'package:app/screens/subscribe.dart';
 import 'package:app/screens/start.dart';
@@ -31,10 +31,10 @@ class MyApp extends StatelessWidget {
         '/subscribe': (context) => Subscribe(),
         '/forgotpassword': (context) => ForgotPassword(),
         '/home': (context) => Home(),
-        '/fullrecipe': (context) => FullRecipe(),
         '/scanqrcode': (context) => ScanQrCode(),
         '/allreceipts': (context) => AllReceipts(),
         '/waitingforrecipe': (context) => WaitingForRecipe(),
+        '/allidentifiedrecipes': (context) => AllIdentifiedRecipes(),
       },
     );
   }

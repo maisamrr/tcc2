@@ -2,11 +2,11 @@ import 'package:app/widgets/bottomnavbar.dart';
 import 'package:flutter/material.dart';
 import 'package:app/const.dart';
 
-class ReceiptDetailsPage extends StatelessWidget {
+class ReceiptDetails extends StatelessWidget {
   final String title;
   final List<String> items;
 
-  const ReceiptDetailsPage({
+  const ReceiptDetails({
     super.key,
     required this.title,
     required this.items,
@@ -92,7 +92,7 @@ class ReceiptDetailsPage extends StatelessWidget {
                                 separatorBuilder: (context, index) {
                                   return Divider(
                                     color: lightGreyColor,
-                                    thickness: 1, // espessura da linha
+                                    thickness: 1, 
                                   );
                                 },
                               ),

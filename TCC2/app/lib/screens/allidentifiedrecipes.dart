@@ -1,19 +1,19 @@
 import 'package:app/const.dart';
-import 'package:app/screens/receiptdetails.dart';
+import 'package:app/screens/recipedetails.dart';
 import 'package:app/widgets/tilewidget.dart';
 import 'package:flutter/material.dart';
 
-class AllReceipts extends StatefulWidget {
-  const AllReceipts({super.key});
+class AllIdentifiedRecipes extends StatefulWidget {
+  const AllIdentifiedRecipes({super.key});
 
   @override
-  State<AllReceipts> createState() => _AllReceiptsState();
+  State<AllIdentifiedRecipes> createState() => _AllIdentifiedRecipesState();
 }
 
-class _AllReceiptsState extends State<AllReceipts> {
-  final List<Map<String, dynamic>> receipts = [
+class _AllIdentifiedRecipesState extends State<AllIdentifiedRecipes> {
+  final List<Map<String, dynamic>> recipes = [
     {
-      'title': 'Nota fiscal de 16/08/2024',
+      'title': 'Pudim',
       'items': [
         'item 1',
         'item 2',
@@ -23,31 +23,22 @@ class _AllReceiptsState extends State<AllReceipts> {
         'item C',
         'item D',
         'item A',
-        'item B',
-        'item C',
-        'item D',
-        'item A',
-        'item B',
-        'item C',
-        'item D',
-        'item 1',
-        'item 2',
-        'item 3',
-        'item A',
-        'item B',
-        'item 1',
-        'item 2',
-        'item 3',
-        'item A',
-        'item B'
       ],
     },
     {
-      'title': 'Nota fiscal de 15/08/2024',
+      'title': 'Bolo fofo',
       'items': ['item A', 'item B', 'item C', 'item D'],
     },
     {
-      'title': 'Nota fiscal de 14/08/2024',
+      'title': 'Bolo simples de café',
+      'items': ['item X', 'item Y'],
+    },
+    {
+      'title': 'Bolo de laranja',
+      'items': ['item X', 'item Y'],
+    },
+    {
+      'title': 'Bolo de fubá',
       'items': ['item X', 'item Y'],
     },
   ];
@@ -55,7 +46,7 @@ class _AllReceiptsState extends State<AllReceipts> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: greenColor,
+      backgroundColor: yellowColor,
       body: Padding(
         padding: const EdgeInsets.fromLTRB(32, 40, 32, 80),
         child: Column(
@@ -73,7 +64,7 @@ class _AllReceiptsState extends State<AllReceipts> {
             ),
             const SizedBox(height: 40),
             Text(
-              'Últimas notas fiscais',
+              'Receitas identificadas',
               style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -83,16 +74,19 @@ class _AllReceiptsState extends State<AllReceipts> {
             const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
-                itemCount: receipts.length,
+                itemCount: recipes.length,
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
                     child: TiletWidget(
-                      title: receipts[index]['title'],
-                      items: List<String>.from(receipts[index]['items']),
-                      destination: ReceiptDetails(
-                          title: receipts[index]['title'],
-                          items: List<String>.from(receipts[index]['items'])),
+                      title: recipes[index]['title'],
+                      items: List<String>.from(recipes[index]['items']),
+                      destination: RecipeDetails(
+                          title: recipes[index]['title'],
+                          items: List<String>.from(recipes[index]['items']), 
+                          servings: '16 porções',
+                          prepare: ['Bata todos os ingredientes no liquidificador.', 'Coloque em uma forma untada e enfarinhada.', 'Leve ao forno preaquecido e deixe assar, por cerca de 40 minutos', 'Bata todos os ingredientes no liquidificador.', 'Bata todos os ingredientes no liquidificador.','Bata todos os ingredientes no liquidificador.','Bata todos os ingredientes no liquidificador.','Bata todos os ingredientes no liquidificador.',],
+                      ),
                     ),
                   );
                 },

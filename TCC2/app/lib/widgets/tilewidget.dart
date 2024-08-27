@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:app/const.dart';
-import 'package:app/screens/receiptdetails.dart';
 
-class ReceiptWidget extends StatelessWidget {
+class TiletWidget extends StatelessWidget {
   final String title;
   final List<String> items;
+  final Widget destination; 
 
-  const ReceiptWidget({
+  const TiletWidget({
     super.key,
     required this.title,
     required this.items,
+    required this.destination,
   });
 
   @override
@@ -53,10 +54,8 @@ class ReceiptWidget extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => ReceiptDetailsPage(
-                        title: title,
-                        items: items,
-                      ),
+                      builder: (context) =>
+                          destination, // Usando o novo parâmetro
                     ),
                   );
                 },
