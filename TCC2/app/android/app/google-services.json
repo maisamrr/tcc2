@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "305798928293",
+    "project_id": "tcc2-notasculinarias",
+    "storage_bucket": "tcc2-notasculinarias.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:305798928293:android:6823e52121b74b29183a4c",
+        "android_client_info": {
+          "package_name": "com.tcc.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6T8gU0hDE1tMqB-3sf4LVIDlFqsl759A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:305798928293:android:ec187ee8c795b30d183a4c",
+        "android_client_info": {
+          "package_name": "com.tcc2.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6T8gU0hDE1tMqB-3sf4LVIDlFqsl759A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

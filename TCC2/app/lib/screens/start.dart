@@ -10,8 +10,6 @@ class Start extends StatefulWidget {
 
 class _StartState extends State<Start> {
   int _currentIndex = 0;
-  final CarouselController _controller =
-      CarouselController(); // Adicionado o CarouselController
 
   final List<Map<String, String>> _pages = [
     {
@@ -82,7 +80,9 @@ class _StartState extends State<Start> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: _pages.asMap().entries.map((entry) {
                           return GestureDetector(
-                            onTap: () => _controller.animateToPage(entry.key),
+                            onTap: () => setState(() {
+                              _currentIndex = entry.key;
+                            }),
                             child: Container(
                               width: 8.0,
                               height: 8.0,
@@ -144,7 +144,6 @@ class _StartState extends State<Start> {
 
     return Scaffold(
       body: CarouselSlider(
-        carouselController: _controller,
         options: CarouselOptions(
           height: screenHeight,
           enlargeCenterPage: false,

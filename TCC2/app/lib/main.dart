@@ -1,3 +1,4 @@
+import 'package:app/firebase_options.dart';
 import 'package:app/screens/allidentifiedrecipes.dart';
 import 'package:app/screens/allreceipts.dart';
 import 'package:app/screens/profile.dart';
@@ -7,11 +8,18 @@ import 'package:app/screens/start.dart';
 import 'package:app/screens/forgotpassword.dart';
 import 'package:app/screens/home.dart';
 import 'package:app/screens/waitingforrecipe.dart';
+import 'package:app/store/user_store.dart';
 import 'package:flutter/material.dart';
 import 'package:app/screens/login.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -19,25 +27,32 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Notas Culinárias',
-      theme: ThemeData(
-        fontFamily: 'PP Neue Montreal',
+    return MultiProvider(
+      providers: [
+        Provider(
+          create: (context) => UserStore(),
+        ),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Notas Culinárias',
+        theme: ThemeData(
+          fontFamily: 'PP Neue Montreal',
+        ),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => Start(),
+          '/login': (context) => Login(),
+          '/subscribe': (context) => Subscribe(),
+          '/forgotpassword': (context) => ForgotPassword(),
+          '/home': (context) => Home(),
+          '/scanqrcode': (context) => ScanQrCode(),
+          '/allreceipts': (context) => AllReceipts(),
+          '/waitingforrecipe': (context) => WaitingForRecipe(),
+          '/allidentifiedrecipes': (context) => AllIdentifiedRecipes(),
+          '/profile': (context) => Profile(),
+        },
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => Start(),
-        '/login': (context) => Login(),
-        '/subscribe': (context) => Subscribe(),
-        '/forgotpassword': (context) => ForgotPassword(),
-        '/home': (context) => Home(),
-        '/scanqrcode': (context) => ScanQrCode(),
-        '/allreceipts': (context) => AllReceipts(),
-        '/waitingforrecipe': (context) => WaitingForRecipe(),
-        '/allidentifiedrecipes': (context) => AllIdentifiedRecipes(),
-        '/profile': (context) => Profile(),
-      },
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:app/const.dart';
+import 'package:app/services/user_service.dart';
 import 'package:flutter/material.dart';
 
 class Login extends StatefulWidget {
@@ -10,11 +11,84 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  final _formKey = GlobalKey<FormState>();
+  final _form = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  final _senhaController = TextEditingController();
+  final _passwordController = TextEditingController();
 
+  String? _errorText;
   bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return "E-mail é obrigatório";
+    }
+    if (!value.contains('@')) {
+      return "E-mail inválido";
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Senha é obrigatória";
+    }
+    if (value.length < 8) {
+      return "Sua senha deve ter no mínimo 8 caracters";
+    }
+    return null;
+  }
+
+  Future<void> _submitForm(BuildContext context) async {
+    if (!_form.currentState!.validate()) {
+      return;
+    }
+
+    String email = _emailController.text;
+    String password = _passwordController.text;
+    String? errorPassword = _validatePassword(password);
+
+    if (errorPassword != null) {
+      setState(() {
+        _errorText = errorPassword;
+      });
+      return;
+    }
+
+    UserService userService = UserService();
+
+    try {
+      await userService.loginUser(email: email, password: password);
+      Navigator.of(context).pushReplacementNamed('/home');
+    } catch (e) {
+      setState(() {
+      });
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Erro de Autenticação'),
+            content:
+                const Text('Erro ao fazer login. Verifique suas credenciais.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +97,7 @@ class _LoginState extends State<Login> {
       body: Padding(
         padding: const EdgeInsets.fromLTRB(32, 104, 32, 80),
         child: Form(
-          key: _formKey,
+          key: _form,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -41,6 +115,7 @@ class _LoginState extends State<Login> {
               // email
               TextFormField(
                 controller: _emailController,
+                validator: _validateEmail,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                     labelText: 'E-mail',
@@ -68,7 +143,7 @@ class _LoginState extends State<Login> {
               const SizedBox(height: 16),
               //campo senha
               TextFormField(
-                controller: _senhaController,
+                controller: _passwordController,
                 keyboardType: TextInputType.text,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
@@ -109,19 +184,24 @@ class _LoginState extends State<Login> {
                   setState(() {});
                 },
               ),
+              if (_errorText != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, left: 8),
+                    child: Text(
+                      _errorText!,
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 113, 7, 7),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
               // espacamento
               const SizedBox(height: 16),
               //botão login
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // logica de login
-                      Navigator.of(context).pushReplacementNamed('/home');
-
-                    }
-                  },
+                  onPressed: () => _submitForm(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFB83E8),
                     side: const BorderSide(
@@ -161,7 +241,7 @@ class _LoginState extends State<Login> {
               // fazer cadastro
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pushReplacementNamed('/cadastro');
+                  Navigator.of(context).pushReplacementNamed('/subscribe');
                 },
                 child: Text(
                   'Fazer cadastro',
