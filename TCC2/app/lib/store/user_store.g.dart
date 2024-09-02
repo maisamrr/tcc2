@@ -71,6 +71,57 @@ mixin _$UserStore on _UserStoreBase, Store {
     });
   }
 
+  late final _$favoriteRecipesAtom =
+      Atom(name: '_UserStoreBase.favoriteRecipes', context: context);
+
+  @override
+  ObservableList<String> get favoriteRecipes {
+    _$favoriteRecipesAtom.reportRead();
+    return super.favoriteRecipes;
+  }
+
+  @override
+  set favoriteRecipes(ObservableList<String> value) {
+    _$favoriteRecipesAtom.reportWrite(value, super.favoriteRecipes, () {
+      super.favoriteRecipes = value;
+    });
+  }
+
+  late final _$loadFavoriteRecipesAsyncAction =
+      AsyncAction('_UserStoreBase.loadFavoriteRecipes', context: context);
+
+  @override
+  Future<void> loadFavoriteRecipes() {
+    return _$loadFavoriteRecipesAsyncAction
+        .run(() => super.loadFavoriteRecipes());
+  }
+
+  late final _$addFavoriteRecipeAsyncAction =
+      AsyncAction('_UserStoreBase.addFavoriteRecipe', context: context);
+
+  @override
+  Future<void> addFavoriteRecipe(String recipeId) {
+    return _$addFavoriteRecipeAsyncAction
+        .run(() => super.addFavoriteRecipe(recipeId));
+  }
+
+  late final _$removeFavoriteRecipeAsyncAction =
+      AsyncAction('_UserStoreBase.removeFavoriteRecipe', context: context);
+
+  @override
+  Future<void> removeFavoriteRecipe(String recipeId) {
+    return _$removeFavoriteRecipeAsyncAction
+        .run(() => super.removeFavoriteRecipe(recipeId));
+  }
+
+  late final _$getRecipeByIdAsyncAction =
+      AsyncAction('_UserStoreBase.getRecipeById', context: context);
+
+  @override
+  Future<Map<String, dynamic>?> getRecipeById(String recipeId) {
+    return _$getRecipeByIdAsyncAction.run(() => super.getRecipeById(recipeId));
+  }
+
   late final _$_UserStoreBaseActionController =
       ActionController(name: '_UserStoreBase', context: context);
 
@@ -135,7 +186,8 @@ mixin _$UserStore on _UserStoreBase, Store {
 logado: ${logado},
 name: ${name},
 email: ${email},
-password: ${password}
+password: ${password},
+favoriteRecipes: ${favoriteRecipes}
     ''';
   }
 }

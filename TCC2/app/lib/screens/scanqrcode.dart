@@ -1,5 +1,6 @@
 import 'package:app/const.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
@@ -142,7 +143,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
                   ? Text('QR Code: ${result!.code}')
                   : const Text('Escaneie um QR Code'),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -156,8 +157,35 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
       setState(() {
         result = scanData;
       });
-      // Logica
+
+      // captura a URL do QR code
+      final url = result?.code;
+      
+      if (url != null && url.isNotEmpty) {
+        controller.pauseCamera();
+        _sendUrlToBackend(url);
+      }
     });
+  }
+
+  Future<void> _sendUrlToBackend(String url) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://seu-backend.com/process_note'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: '{"url": "$url"}',
+      );
+
+      if (response.statusCode == 200) {
+        print('Nota processada com sucesso: ${response.body}');
+      } else {
+        print('Erro ao processar a nota: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Erro ao enviar a URL para o backend: $e');
+    }
   }
 
   @override

@@ -50,22 +50,21 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyC6T8gU0hDE1tMqB-3sf4LVIDlFqsl759A',
+    apiKey: 'AIzaSyC73lSMLc8rvDSDVl7PRT043PkzIUYlTIA',
     appId: '1:305798928293:web:d2e5aea397135c1e183a4c',
     messagingSenderId: '305798928293',
     projectId: 'tcc2-notasculinarias',
-    databaseURL: "https://tcc2-notasculinarias-default-rtdb.firebaseio.com",
     authDomain: 'tcc2-notasculinarias.firebaseapp.com',
+    databaseURL: 'https://tcc2-notasculinarias-default-rtdb.firebaseio.com',
     storageBucket: 'tcc2-notasculinarias.appspot.com',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyC6T8gU0hDE1tMqB-3sf4LVIDlFqsl759A',
-    appId: '1:305798928293:android:ec187ee8c795b30d183a4c',
+    appId: '1:305798928293:android:6823e52121b74b29183a4c',
     messagingSenderId: '305798928293',
     projectId: 'tcc2-notasculinarias',
-    databaseURL: "https://tcc2-notasculinarias-default-rtdb.firebaseio.com",
-    authDomain: 'tcc2-notasculinarias.firebaseapp.com',
+    databaseURL: 'https://tcc2-notasculinarias-default-rtdb.firebaseio.com',
     storageBucket: 'tcc2-notasculinarias.appspot.com',
   );
 }

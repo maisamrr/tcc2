@@ -8,41 +8,34 @@ class UserService {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// Método para salvar um novo usuário no Firebase Realtime Database e Firebase Authentication.
   Future<void> saveUser({
     required String name,
     required String email,
     required String password,
   }) async {
-    // Criar um novo nó para o usuário
     final newUserRef = _userRef.push();
     final String? userId = newUserRef.key;
 
     try {
-      // Criar usuário no Firebase Authentication
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Atualizar o perfil do usuário com o nome
       await userCredential.user?.updateDisplayName(name);
 
-      // Definir os dados do usuário no Realtime Database
       await newUserRef.set({
         'name': name,
         'email': email,
         'firebaseUserId': userCredential.user?.uid,
       });
     } catch (e) {
-      // Tratar erro de criação do usuário no Firebase Authentication
       print('Erro ao salvar o usuário: $e');
-      rethrow; // Opcionalmente, você pode propagar o erro para tratá-lo na interface
+      rethrow;
     }
   }
 
-  /// Método para realizar login do usuário usando email e senha.
   Future<void> loginUser({
     required String email,
     required String password,
@@ -54,11 +47,10 @@ class UserService {
       );
     } catch (e) {
       print('Erro ao fazer login: $e');
-      rethrow; // Repropagar o erro para que possa ser tratado na interface
+      rethrow; 
     }
   }
 
-  /// Método para enviar um email de redefinição de senha.
   Future<void> resetPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
@@ -67,7 +59,6 @@ class UserService {
     }
   }
 
-  /// Método para verificar se um email já está registrado.
   Future<bool> isEmailRegistered(String email) async {
     try {
       final methods = await _auth.fetchSignInMethodsForEmail(email);
@@ -78,7 +69,6 @@ class UserService {
     }
   }
 
-  /// Método para obter os dados do usuário atualmente autenticado.
   Future<User?> getUserData() async {
     try {
       return _auth.currentUser;
@@ -88,7 +78,6 @@ class UserService {
     }
   }
 
-  /// Método para obter dados personalizados do usuário a partir do Realtime Database.
   Future<Map<String, dynamic>?> getCurrentUserCustomData() async {
     try {
       final User? currentUser = _auth.currentUser;
@@ -112,7 +101,6 @@ class UserService {
     }
   }
 
-  /// Método para atualizar informações do usuário no Realtime Database e Firebase Authentication.
   Future<void> updateUser({
     String? name,
   }) async {
@@ -148,7 +136,6 @@ class UserService {
     }
   }
 
-  /// Método para realizar logout do usuário.
   Future<void> logout() async {
     try {
       await _auth.signOut();
@@ -165,7 +152,6 @@ class UserService {
 
       final String userKey = currentUser.uid;
 
-      // Buscar receitas favoritadas no Realtime Database
       final DatabaseEvent snapshot =
           await _userRef.child(userKey).child('favorites').once();
 
@@ -174,14 +160,14 @@ class UserService {
 
       if (favoriteRecipesMap == null) return [];
 
-      // Converter o mapa para uma lista de receitas
+      // converter o mapa para uma lista de receitas
       List<Map<String, dynamic>> favoriteRecipes = [];
       favoriteRecipesMap.forEach((key, value) {
         favoriteRecipes.add({
           'title': value['title'],
           'ingredients': List<String>.from(value['ingredients']),
           'onViewRecipe': () {
-            // Implemente a navegação para a receita aqui
+            // rmplementar navegação para a receita aqui
           },
         });
       });

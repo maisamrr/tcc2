@@ -5,6 +5,7 @@ import 'package:app/widgets/profilepicwidget.dart';
 import 'package:app/widgets/recipecardwidget.dart';
 import 'package:flutter/material.dart';
 import 'package:app/widgets/bottomnavbar.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -14,86 +15,22 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final List<Map<String, dynamic>> recipes = [
-    {
-      'title': 'Bolo de Chocolate',
-      'ingredients': [
-        '2 xícaras de farinha',
-        '1 xícara de açúcar',
-        '1/2 xícara de cacau em pó'
-      ],
-      'onViewRecipe': () {},
-    },
-    {
-      'title': 'Panquecas',
-      'ingredients': [
-        '2 xícaras de farinha',
-        '1 xícara de açúcar',
-        '1/2 xícara de cacau em pó',
-        '2 xícaras de farinha',
-        '1 xícara de açúcar',
-        '2 xícaras de farinha',
-        '1 xícara de açúcar',
-        '2 xícaras de farinha',
-        '1 xícara de açúcar',
-      ],
-      'onViewRecipe': () {},
-    },
-    {
-      'title': 'Lasanha',
-      'ingredients': [
-        '2 xícaras de farinha',
-        '1 xícara de açúcar',
-        '1/2 xícara de cacau em pó',
-        '2 xícaras de farinha',
-        '1 xícara de açúcar',
-        '2 xícaras de farinha',
-        '1 xícara de açúcar'
-      ],
-      'onViewRecipe': () {},
-    },
-    {
-      'title': 'Feijoada',
-      'ingredients': [
-        '2 xícaras de farinha',
-        '1 xícara de açúcar',
-        '1/2 xícara de cacau em pó',
-        '2 xícaras de farinha',
-        '1 xícara de açúcar',
-        '2 xícaras de farinha',
-        '1 xícara de açúcar',
-      ],
-      'onViewRecipe': () {},
-    },
-  ];
-
   final userStore = UserStore();
   String? username;
-  List<Map<String, dynamic>> favoriteRecipes = [];
 
   @override
   void initState() {
     super.initState();
     getUsername();
-    getFavoriteRecipes();
+    userStore.loadFavoriteRecipes();
   }
 
   getUsername() async {
     UserService userService = UserService();
-
     var userData = await userService.getUserData();
 
     setState(() {
       username = userData!.displayName!;
-    });
-  }
-
-  getFavoriteRecipes() async {
-    UserService userService = UserService();
-    var recipes = await userService.getFavoriteRecipes();
-
-    setState(() {
-      favoriteRecipes = recipes;
     });
   }
 
@@ -106,7 +43,7 @@ class _HomeState extends State<Home> {
           Positioned.fill(
             child: Stack(
               children: [
-                // Imagem de fundo ajeitar!
+                // Imagem de fundo
                 Positioned.fill(
                   child: Image.asset(
                     'assets/images/back04.png',
@@ -153,67 +90,59 @@ class _HomeState extends State<Home> {
                         ],
                       ),
                     ),
-                    // Receitas
+                    // Receitas Favoritadas
                     Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 48.0),
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(32, 40, 32, 0),
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: backgroundIdColor,
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(32),
-                              topRight: Radius.circular(32),
+                      child: Observer(
+                        builder: (context) {
+                          return GridView.builder(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              childAspectRatio: MediaQuery.of(context)
+                                      .size
+                                      .width /
+                                  (MediaQuery.of(context).size.height / 1.8),
                             ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Suas receitas',
-                                style: TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    color: darkGreyColor),
-                                textAlign: TextAlign.left,
-                              ),
-                              Expanded(
-                                child: GridView.builder(
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 8,
-                                    mainAxisSpacing: 8,
-                                    childAspectRatio: MediaQuery.of(context)
-                                            .size
-                                            .width /
-                                        (MediaQuery.of(context).size.height /
-                                            1.8),
-                                  ),
-                                  itemCount: recipes.length,
-                                  itemBuilder: (context, index) {
-                                    return RecipeCardWidget(
-                                      title: recipes[index]['title'],
-                                      ingredients: recipes[index]
-                                          ['ingredients'],
-                                      onViewRecipe: recipes[index]
-                                          ['onViewRecipe'],
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                            itemCount: userStore.favoriteRecipes.length,
+                            itemBuilder: (context, index) {
+                              final recipeId = userStore.favoriteRecipes[index];
+
+                              return FutureBuilder<Map<String, dynamic>?>(
+                                future: userStore.getRecipeById(recipeId),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return CircularProgressIndicator(); 
+                                  }
+                                  if (snapshot.hasError || !snapshot.hasData) {
+                                    return Text(
+                                        'Erro ao carregar receita');
+                                  }
+
+                                  final recipe = snapshot.data!;
+
+                                  return RecipeCardWidget(
+                                    title: recipe['title'],
+                                    ingredients: recipe['ingredients'],
+                                    onViewRecipe: () {
+                                      // Implementar navegação para a receita detalhada
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
                       ),
-                    ),
+                    )
                   ],
                 ),
               ],
             ),
           ),
-          // navbar
+          // Navbar
           const Positioned(
             bottom: 32,
             left: 32,
