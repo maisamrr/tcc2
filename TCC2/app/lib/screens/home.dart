@@ -1,4 +1,6 @@
 import 'package:app/const.dart';
+import 'package:app/services/user_service.dart';
+import 'package:app/store/user_store.dart';
 import 'package:app/widgets/profilepicwidget.dart';
 import 'package:app/widgets/recipecardwidget.dart';
 import 'package:flutter/material.dart';
@@ -65,6 +67,36 @@ class _HomeState extends State<Home> {
     },
   ];
 
+  final userStore = UserStore();
+  String? username;
+  List<Map<String, dynamic>> favoriteRecipes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    getUsername();
+    getFavoriteRecipes();
+  }
+
+  getUsername() async {
+    UserService userService = UserService();
+
+    var userData = await userService.getUserData();
+
+    setState(() {
+      username = userData!.displayName!;
+    });
+  }
+
+  getFavoriteRecipes() async {
+    UserService userService = UserService();
+    var recipes = await userService.getFavoriteRecipes();
+
+    setState(() {
+      favoriteRecipes = recipes;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,14 +106,13 @@ class _HomeState extends State<Home> {
           Positioned.fill(
             child: Stack(
               children: [
-                // Imagem de fundo
+                // Imagem de fundo ajeitar!
                 Positioned.fill(
                   child: Image.asset(
                     'assets/images/back04.png',
                     fit: BoxFit.cover,
                   ),
                 ),
-                // Conteúdo principal
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -98,7 +129,7 @@ class _HomeState extends State<Home> {
                               Padding(
                                 padding: const EdgeInsets.only(left: 24.0),
                                 child: Text(
-                                  "Olá, Usuária", // Mudar nome
+                                  "Olá, $username",
                                   style: TextStyle(
                                     fontSize: 18.0,
                                     color: darkGreyColor,

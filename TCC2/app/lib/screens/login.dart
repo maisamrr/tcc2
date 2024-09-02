@@ -110,7 +110,6 @@ class _LoginState extends State<Login> {
                     color: darkGreyColor),
                 textAlign: TextAlign.left,
               ),
-              // espacamento
               const SizedBox(height: 32),
               // email
               TextFormField(
@@ -139,9 +138,8 @@ class _LoginState extends State<Login> {
                       ),
                     )),
               ),
-              // espacamento
               const SizedBox(height: 16),
-              //campo senha
+              // senha
               TextFormField(
                 controller: _passwordController,
                 keyboardType: TextInputType.text,
@@ -195,7 +193,6 @@ class _LoginState extends State<Login> {
                       ),
                     ),
                   ),
-              // espacamento
               const SizedBox(height: 16),
               //botão login
               SizedBox(
@@ -224,9 +221,7 @@ class _LoginState extends State<Login> {
                   ),
                 ),
               ),
-              // espacamento
               const SizedBox(height: 24),
-              // esqueci senha
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pushReplacementNamed('/recuperarsenha');
@@ -238,7 +233,6 @@ class _LoginState extends State<Login> {
                   ),
                 ),
               ),
-              // fazer cadastro
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pushReplacementNamed('/subscribe');

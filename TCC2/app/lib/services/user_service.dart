@@ -20,7 +20,8 @@ class UserService {
 
     try {
       // Criar usuário no Firebase Authentication
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -153,6 +154,42 @@ class UserService {
       await _auth.signOut();
     } catch (e) {
       print('Erro ao fazer logout: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getFavoriteRecipes() async {
+    try {
+      final User? currentUser = _auth.currentUser;
+
+      if (currentUser == null) return [];
+
+      final String userKey = currentUser.uid;
+
+      // Buscar receitas favoritadas no Realtime Database
+      final DatabaseEvent snapshot =
+          await _userRef.child(userKey).child('favorites').once();
+
+      final Map<dynamic, dynamic>? favoriteRecipesMap =
+          snapshot.snapshot.value as Map<dynamic, dynamic>?;
+
+      if (favoriteRecipesMap == null) return [];
+
+      // Converter o mapa para uma lista de receitas
+      List<Map<String, dynamic>> favoriteRecipes = [];
+      favoriteRecipesMap.forEach((key, value) {
+        favoriteRecipes.add({
+          'title': value['title'],
+          'ingredients': List<String>.from(value['ingredients']),
+          'onViewRecipe': () {
+            // Implemente a navegação para a receita aqui
+          },
+        });
+      });
+
+      return favoriteRecipes;
+    } catch (e) {
+      print('Erro ao recuperar receitas favoritadas: $e');
+      return [];
     }
   }
 }
