@@ -67,8 +67,7 @@ class _LoginState extends State<Login> {
       await userService.loginUser(email: email, password: password);
       Navigator.of(context).pushReplacementNamed('/home');
     } catch (e) {
-      setState(() {
-      });
+      setState(() {});
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -94,7 +93,8 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundIdColor,
-      body: Padding(
+      body: SingleChildScrollView(
+        // Envolva com SingleChildScrollView
         padding: const EdgeInsets.fromLTRB(32, 104, 32, 80),
         child: Form(
           key: _form,
@@ -183,16 +183,16 @@ class _LoginState extends State<Login> {
                 },
               ),
               if (_errorText != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8, left: 8),
-                    child: Text(
-                      _errorText!,
-                      style: const TextStyle(
-                        color: Color.fromARGB(255, 113, 7, 7),
-                        fontSize: 12,
-                      ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, left: 8),
+                  child: Text(
+                    _errorText!,
+                    style: const TextStyle(
+                      color: Color.fromARGB(255, 113, 7, 7),
+                      fontSize: 12,
                     ),
                   ),
+                ),
               const SizedBox(height: 16),
               //botão login
               SizedBox(

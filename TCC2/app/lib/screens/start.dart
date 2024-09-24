@@ -45,7 +45,7 @@ class _StartState extends State<Start> {
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(32, 88, 32, 80),
+              padding: const EdgeInsets.fromLTRB(32, 120, 32, 80),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,8 +1,9 @@
-import 'package:app/const.dart';
+import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
+import 'package:url_launcher/url_launcher.dart'; // Still useful for fallback
 
 class ScanQrCode extends StatefulWidget {
   const ScanQrCode({super.key});
@@ -12,109 +13,10 @@ class ScanQrCode extends StatefulWidget {
 }
 
 class _ScanQrCodeState extends State<ScanQrCode> {
-  @override
-  Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-
-    return Scaffold(
-      backgroundColor: backgroundIdColor,
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(32, 40, 32, 80),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).pushReplacementNamed('/home');
-              },
-              child: Icon(
-                Icons.arrow_back,
-                size: 32,
-                color: darkGreyColor,
-              ),
-            ),
-            const SizedBox(height: 40),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    children: [
-                      Text(
-                        'Instruções',
-                        style: TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: darkGreyColor),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Com a nota fiscal em mãos, posicione a câmera no QR Code e aguarde a leitura\nLogo a receita será exibida',
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontFamily: 'Inter',
-                            color: darkGreyColor),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                  SvgPicture.asset(
-                    'assets/images/camera.svg',
-                    width: 0.3 * width,
-                    color: darkGreyColor,
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const QrCodeScanner(),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFB83E8),
-                        side: const BorderSide(
-                            color: Color(0xFF343A40), width: 1.0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(32),
-                        ),
-                      ),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Text(
-                          'Escanear QR Code',
-                          style: TextStyle(
-                            color: Color(0xFF343A40),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class QrCodeScanner extends StatefulWidget {
-  const QrCodeScanner({super.key});
-
-  @override
-  State<QrCodeScanner> createState() => _QrCodeScannerState();
-}
-
-class _QrCodeScannerState extends State<QrCodeScanner> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   Barcode? result;
   QRViewController? controller;
+  bool isProcessing = false;
 
   @override
   void reassemble() {
@@ -127,23 +29,38 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: Stack(
         children: <Widget>[
-          Expanded(
-            flex: 5,
-            child: QRView(
-              key: qrKey,
-              onQRViewCreated: _onQRViewCreated,
-            ),
+          Column(
+            children: <Widget>[
+              Expanded(
+                flex: 5,
+                child: QRView(
+                  key: qrKey,
+                  onQRViewCreated: _onQRViewCreated,
+                  overlay: QrScannerOverlayShape(
+                    borderColor: Colors.red,
+                    borderRadius: 10,
+                    borderLength: 30,
+                    borderWidth: 10,
+                    cutOutSize: 250,
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Center(
+                  child: (result != null)
+                      ? Text('QR Code: ${result!.code}')
+                      : const Text('Escaneie um QR Code'),
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            flex: 1,
-            child: Center(
-              child: (result != null)
-                  ? Text('QR Code: ${result!.code}')
-                  : const Text('Escaneie um QR Code'),
+          if (isProcessing)
+            const Center(
+              child: CircularProgressIndicator(),
             ),
-          ),
         ],
       ),
     );
@@ -153,39 +70,97 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
     setState(() {
       this.controller = controller;
     });
-    controller.scannedDataStream.listen((scanData) {
-      setState(() {
-        result = scanData;
-      });
 
-      // captura a URL do QR code
-      final url = result?.code;
-      
-      if (url != null && url.isNotEmpty) {
-        controller.pauseCamera();
-        _sendUrlToBackend(url);
+    controller.scannedDataStream.listen((scanData) async {
+      if (!isProcessing) {
+        setState(() {
+          isProcessing = true;
+          result = scanData;
+        });
+
+        final url = result?.code;
+
+        if (url != null && url.isNotEmpty) {
+          controller.pauseCamera();
+
+          // Ensure the URL starts with http or https and is properly encoded
+          final modifiedUrl = _ensureValidUrl(url);
+
+          await _launchURLInChrome(modifiedUrl);
+          setState(() {
+            isProcessing = false;
+          });
+
+          controller.resumeCamera();
+        }
       }
     });
   }
 
-  Future<void> _sendUrlToBackend(String url) async {
-    try {
-      final response = await http.post(
-        Uri.parse('https://seu-backend.com/process_note'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: '{"url": "$url"}',
-      );
-
-      if (response.statusCode == 200) {
-        print('Nota processada com sucesso: ${response.body}');
-      } else {
-        print('Erro ao processar a nota: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Erro ao enviar a URL para o backend: $e');
+  // Ensures the URL is valid and starts with "https" if missing
+  String _ensureValidUrl(String url) {
+    log('Original URL: $url'); // Log the original URL
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://$url';
     }
+    return Uri.encodeFull(url);
+  }
+
+  Future<void> _launchURLInChrome(String url) async {
+    try {
+      // Use Android Intent to launch Chrome
+      final intent = AndroidIntent(
+        action: 'action_view',
+        data: url,
+        package: 'com.android.chrome', // Force the URL to open in Chrome
+        flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+      );
+      await intent.launch();
+      log('Launching URL in Chrome: $url');
+    } catch (e) {
+      // Fallback to using url_launcher if Chrome is not available
+      log('Error launching Chrome, falling back to url_launcher: $e');
+      await _launchURL(url);
+    }
+  }
+
+  // Fallback URL launcher using url_launcher plugin
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+
+    // Log the URL to be launched
+    log('Trying to launch URL: $url');
+
+    if (await canLaunchUrl(uri)) {
+      log('Launching URL with default app: $url');
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication, // Ensure it opens in the external browser
+      );
+    } else {
+      log('Failed to launch URL: $url');
+      _showErrorDialog('Could not launch $url');
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
