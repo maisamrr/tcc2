@@ -1,9 +1,8 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:android_intent_plus/android_intent.dart';
-import 'package:android_intent_plus/flag.dart';
-import 'package:url_launcher/url_launcher.dart'; // Still useful for fallback
+import 'package:http/http.dart' as http;
 
 class ScanQrCode extends StatefulWidget {
   const ScanQrCode({super.key});
@@ -82,11 +81,10 @@ class _ScanQrCodeState extends State<ScanQrCode> {
 
         if (url != null && url.isNotEmpty) {
           controller.pauseCamera();
-
-          // Ensure the URL starts with http or https and is properly encoded
           final modifiedUrl = _ensureValidUrl(url);
 
-          await _launchURLInChrome(modifiedUrl);
+          // enviar para backend
+          await _processUrl(modifiedUrl);
           setState(() {
             isProcessing = false;
           });
@@ -97,58 +95,41 @@ class _ScanQrCodeState extends State<ScanQrCode> {
     });
   }
 
-  // Ensures the URL is valid and starts with "https" if missing
   String _ensureValidUrl(String url) {
-    log('Original URL: $url'); // Log the original URL
+    log('URL original: $url');
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = 'https://$url';
     }
     return Uri.encodeFull(url);
   }
 
-  Future<void> _launchURLInChrome(String url) async {
+  Future<void> _processUrl(String url) async {
+    const String apiUrl = 'http://your-flask-server-ip/process_receipt';
     try {
-      // Use Android Intent to launch Chrome
-      final intent = AndroidIntent(
-        action: 'action_view',
-        data: url,
-        package: 'com.android.chrome', // Force the URL to open in Chrome
-        flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{'url': url}),
       );
-      await intent.launch();
-      log('Launching URL in Chrome: $url');
+
+      if (response.statusCode == 200) {
+        _showResultDialog('Successo', 'Data: ${response.body}');
+      } else {
+        _showResultDialog('Erro', 'Erro ao processar script de leitura da nota');
+      }
     } catch (e) {
-      // Fallback to using url_launcher if Chrome is not available
-      log('Error launching Chrome, falling back to url_launcher: $e');
-      await _launchURL(url);
+      _showResultDialog('Erro', 'Erro ao processar a URL fornecida');
     }
   }
 
-  // Fallback URL launcher using url_launcher plugin
-  Future<void> _launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-
-    // Log the URL to be launched
-    log('Trying to launch URL: $url');
-
-    if (await canLaunchUrl(uri)) {
-      log('Launching URL with default app: $url');
-      await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication, // Ensure it opens in the external browser
-      );
-    } else {
-      log('Failed to launch URL: $url');
-      _showErrorDialog('Could not launch $url');
-    }
-  }
-
-  void _showErrorDialog(String message) {
+  void _showResultDialog(String title, String message) {
     showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Error'),
+          title: Text(title),
           content: Text(message),
           actions: <Widget>[
             TextButton(

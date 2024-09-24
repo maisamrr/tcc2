@@ -1,7 +1,8 @@
 import time
 import json
 import pandas as pd
-from firebase_admin import credentials, db
+import firebase_admin
+from firebase_admin import credentials, db, firestore
 from selenium import webdriver
 from twocaptcha import TwoCaptcha
 from selenium.webdriver.common.by import By
@@ -10,12 +11,11 @@ from selenium.webdriver.chrome.service import Service
 
 cred = credentials.Certificate('../secrets/serviceAccountKey.json')
 firebase_admin.initialize_app(cred, {
-    'https://tcc2-notasculinarias-default-rtdb.firebaseio.com'  
+    'databaseURL': 'https://tcc2-notasculinarias-default-rtdb.firebaseio.com'
 })
 
-with open('config.json') as config_file:
+with open('../secrets/api_key.json') as config_file:
     config = json.load(config_file)
-
 API_KEY = config['API_KEY']
 solver = TwoCaptcha(API_KEY)
 

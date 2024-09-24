@@ -3,9 +3,6 @@ from process_receipt import process_receipt_logic
 
 app = Flask(__name__)
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
-
 @app.route('/')
 def home():
     return "Servidor Flask"
