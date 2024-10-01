@@ -72,9 +72,11 @@ class _ScanQrCodeState extends State<ScanQrCode> {
                 initialUrl = result?.code; // salva url inicial
               },
               onPageFinished: (url) async {
-                debugPrint('MyApp: Page loaded $url');
+                debugPrint('MyApp: ******* Início ******** Página carregada $url');
                 if (_isCaptchaResolved(url) && !dataExtracted) {
                   dataExtracted = true; 
+                  debugPrint('MyApp: Aguardando 10 segundos para a página carregar');
+                  await Future.delayed(const Duration(seconds: 10));
                   await _extractDataAndSendToBackend();
                 }
               },
@@ -116,10 +118,8 @@ class _ScanQrCodeState extends State<ScanQrCode> {
   // checar se captcha foi resolvido
   bool _isCaptchaResolved(String currentUrl) {
     if (initialUrl != null &&
-        initialUrl!.startsWith('http://www') &&
-        currentUrl.startsWith('https://ww1') &&
         currentUrl != initialUrl) {
-      debugPrint('MyApp: CAPTCHA resolvido, URL mudou para: $currentUrl');
+      debugPrint('MyApp: CAPTCHA resolvido, URL mudou de $initialUrl para $currentUrl');
       return true;
     }
     return false;
@@ -132,8 +132,50 @@ class _ScanQrCodeState extends State<ScanQrCode> {
     });
 
     try {
-      // placeholder
-      String extractedData = '[{"item_name": "Item 1", "first_word": "Item"},{"item_name": "Item 2", "first_word": "Item"}]';
+      // placeholder String extractedData = '[{"item_name": "Item 1", "first_word": "Item"},{"item_name": "Item 2", "first_word": "Item"}]';
+
+      String extractedData = await webViewController!.runJavascriptReturningResult(
+        """
+        (function() {
+          var ulElement = document.querySelector('ul');
+          var ulText = ulElement ? ulElement.innerText : '';
+          var itemsList = ulText.split('\\n').filter(Boolean);
+
+          // Filter items containing '(Cód: \\w+)'
+          itemsList = itemsList.filter(function(item) {
+            return /\\(Cód: \\w+\\)/.test(item);
+          });
+
+          // Remove ' (Cód: S\\d+)' pattern
+          itemsList = itemsList.map(function(item) {
+            return item.replace(/\\s\\(Cód: S\\d+\\)/, '');
+          });
+
+          // Remove quantities and units
+          itemsList = itemsList.map(function(item) {
+            return item.replace(/\\d+[Xx]\\d+\\w*|\\d+\\w*|\\d+/g, '').trim();
+          });
+
+          // Extract the first word and prepare the final array
+          var processedItems = itemsList.map(function(item) {
+            var firstWord = item.split(' ')[0];
+            return {
+              item_name: item,
+              first_word: firstWord
+            };
+          });
+
+          return JSON.stringify(processedItems);
+        })();
+        """
+      );
+
+      // Clean up the returned string if necessary
+      extractedData = extractedData.replaceAll('\\n', '').replaceAll('\\"', '"').trim();
+
+      String pageContent = await webViewController!.runJavascriptReturningResult(
+  "document.documentElement.outerHTML");
+      debugPrint('MyApp: ************ HTML da página ********** $pageContent');
 
       if (extractedData.isNotEmpty) {
         debugPrint('MyApp: Extraído $extractedData');
@@ -147,14 +189,14 @@ class _ScanQrCodeState extends State<ScanQrCode> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => Profile(), // teste
+            builder: (context) => ReceiptDetails(title: 'Nota fiscal', items: [],), // teste
           ),
         );
       } else {
         debugPrint('MyApp: Falha ao extrair informações.');
         // mostrar para o usuario erro
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Falha ao extrair informações.')),
+          const SnackBar(content: Text('Falha ao extrair informações.')),
         );
 
         setState(() {
@@ -166,7 +208,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
       debugPrint('MyApp: Erro ao extrair informações: $e');
       // mostrar para o usuario erro
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao extrair informações.')),
+        const SnackBar(content: Text('Erro ao extrair informações.')),
       );
 
       setState(() {
@@ -178,7 +220,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
 
   // funcao para enviar para o backend
   Future<void> _sendDataToBackend(String data) async {
-    const backendUrl = 'http://192.168.0.10:5000/process_receipt';
+    const backendUrl = 'http://172.27.2.147:5000/process_receipt';
     try {
       final response = await http.post(
         Uri.parse(backendUrl),
@@ -192,14 +234,14 @@ class _ScanQrCodeState extends State<ScanQrCode> {
         debugPrint('MyApp: Erro: ${response.body}');
         // mostrar para o usuario erro
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Falha ao processar informações no servidor.')),
+          const SnackBar(content: Text('Falha ao processar informações no servidor.')),
         );
       }
     } catch (e) {
       debugPrint('MyApp: Falha no request para backend: $e');
       // mostrar para o usuario erro
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Falha ao conectar ao servidor.')),
+        const SnackBar(content: Text('Falha ao conectar ao servidor.')),
       );
     }
   }
