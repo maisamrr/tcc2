@@ -23,6 +23,7 @@ dependencies:
   http: ^1.2.2
   url_launcher: ^6.1.7
   android_intent_plus: ^3.0.0
+  webview_flutter: 3.0.4
 
 dependency_overrides:
   camera_android_camerax: 0.6.7 

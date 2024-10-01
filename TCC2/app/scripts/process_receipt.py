@@ -21,37 +21,15 @@ solver = TwoCaptcha(API_KEY)
 
 def process_receipt_logic(url):
     try:
-        siteKey = "0x4AAAAAAAaOvnbOLak1uio1"
-        result = solver.turnstile(sitekey=siteKey, url=url)
-        print("CAPTCHA solved: ", result['code'])
-    except Exception as e:
-        print("CAPTCHA solving error: ", str(e))
-        return {'error': 'CAPTCHA failed', 'details': str(e)}
-    
-    try:
+        print(f"Recebido URL: {url}")  
         # Start Selenium driver and perform actions
         options = webdriver.ChromeOptions()
         service = Service()
         driver = webdriver.Chrome(options=options)
         driver.get(url)
-        
+         
         time.sleep(5)
-        
-        # Interact with page
-        # Add more logging to track progress
-        print("Attempting to insert CAPTCHA solution")
-        driver.execute_script(f'''
-            var elements = document.querySelectorAll("[name='g-recaptcha-response']");
-            for (var i = 0; i < elements.length; i++) {{
-                elements[i].value = "{result['code']}";
-            }}
-        ''')
-        
-        print("Clicking button")
-        button = driver.find_element(By.CLASS_NAME, "btn")
-        button.click()
 
-        # Scrape products, add more logging to track progress
         print("Scraping items...")
         itens_str = driver.find_element(By.XPATH, "//ul").text
         

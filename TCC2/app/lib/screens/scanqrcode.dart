@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import 'package:http/http.dart' as http;
 
 class ScanQrCode extends StatefulWidget {
@@ -16,6 +17,10 @@ class _ScanQrCodeState extends State<ScanQrCode> {
   Barcode? result;
   QRViewController? controller;
   bool isProcessing = false;
+  bool isCaptchaPageOpen = false;
+  WebViewController? webViewController;
+  String? initialUrl; // Store the initial URL here
+  bool captchaSolved = false; // Track if CAPTCHA has been solved
 
   @override
   void reassemble() {
@@ -30,32 +35,69 @@ class _ScanQrCodeState extends State<ScanQrCode> {
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          Column(
-            children: <Widget>[
-              Expanded(
-                flex: 5,
-                child: QRView(
-                  key: qrKey,
-                  onQRViewCreated: _onQRViewCreated,
-                  overlay: QrScannerOverlayShape(
-                    borderColor: Colors.red,
-                    borderRadius: 10,
-                    borderLength: 30,
-                    borderWidth: 10,
-                    cutOutSize: 250,
+          if (!isCaptchaPageOpen)
+            Column(
+              children: <Widget>[
+                Expanded(
+                  flex: 5,
+                  child: QRView(
+                    key: qrKey,
+                    onQRViewCreated: _onQRViewCreated,
+                    overlay: QrScannerOverlayShape(
+                      borderColor: Colors.red,
+                      borderRadius: 10,
+                      borderLength: 30,
+                      borderWidth: 10,
+                      cutOutSize: 250,
+                    ),
                   ),
                 ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Center(
-                  child: (result != null)
-                      ? Text('QR Code: ${result!.code}')
-                      : const Text('Escaneie um QR Code'),
+                Expanded(
+                  flex: 1,
+                  child: Center(
+                    child: (result != null)
+                        ? Text('QR Code: ${result!.code}')
+                        : const Text('Escaneie um QR Code'),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          if (isCaptchaPageOpen)
+            Column(
+              children: [
+                Expanded(
+                  flex: 5,
+                  child: WebView(
+                    initialUrl: result?.code, // Open the scanned URL in WebView
+                    javascriptMode: JavascriptMode.unrestricted,
+                    onWebViewCreated: (WebViewController controller) {
+                      webViewController = controller;
+                      initialUrl = result?.code; // Save the initial URL
+                    },
+                    onPageFinished: (url) {
+                      // No longer auto-trigger backend call; let the user click a button
+                      log('Page loaded: $url');
+                    },
+                  ),
+                ),
+                // Add a button for the user to click when the CAPTCHA is solved
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      // When the user presses the button, process the URL
+                      String? currentUrl = await webViewController?.currentUrl();
+                      if (currentUrl != null && _isCaptchaResolved(currentUrl)) {
+                        await _sendUrlToBackend(currentUrl);
+                      } else {
+                        log('CAPTCHA not resolved yet.');
+                      }
+                    },
+                    child: const Text('CAPTCHA Solved'),
+                  ),
+                ),
+              ],
+            ),
           if (isProcessing)
             const Center(
               child: CircularProgressIndicator(),
@@ -81,72 +123,57 @@ class _ScanQrCodeState extends State<ScanQrCode> {
 
         if (url != null && url.isNotEmpty) {
           controller.pauseCamera();
-          final modifiedUrl = _ensureValidUrl(url);
-
-          // enviar para backend
-          await _processUrl(modifiedUrl);
           setState(() {
-            isProcessing = false;
+            isCaptchaPageOpen = true; // Show the WebView with the CAPTCHA page
+            isProcessing = false; // QR scanning is done, set isProcessing to false here
           });
-
-          controller.resumeCamera();
         }
       }
     });
   }
 
-  String _ensureValidUrl(String url) {
-    log('URL original: $url');
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = 'https://$url';
+  // Check if CAPTCHA is resolved by comparing the URL structure
+  bool _isCaptchaResolved(String currentUrl) {
+    // Check if the URL has changed to the format "https://ww1..."
+    if (initialUrl != null &&
+        currentUrl.startsWith('https://ww1') &&
+        currentUrl != initialUrl) {
+      log('CAPTCHA solved, URL changed to: $currentUrl');
+      return true; // CAPTCHA resolved
     }
-    return Uri.encodeFull(url);
+    return false;
   }
 
-  Future<void> _processUrl(String url) async {
-    const String apiUrl = 'http://your-flask-server-ip/process_receipt';
+  // Function to send the URL to the backend after CAPTCHA is resolved
+  Future<void> _sendUrlToBackend(String url) async {
+    setState(() {
+      isProcessing = true; // Start processing the backend request
+    });
+
+    const backendUrl = 'http://localhost:5000/process_receipt'; // Your Flask backend URL
     try {
       final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{'url': url}),
+        Uri.parse(backendUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'url': url}),
       );
 
       if (response.statusCode == 200) {
-        _showResultDialog('Successo', 'Data: ${response.body}');
+        log("Success: ${response.body}");
       } else {
-        _showResultDialog('Erro', 'Erro ao processar script de leitura da nota');
+        log("Error: ${response.body}");
       }
     } catch (e) {
-      _showResultDialog('Erro', 'Erro ao processar a URL fornecida');
+      log("Backend request failed: $e");
+    } finally {
+      setState(() {
+        isProcessing = false;
+        isCaptchaPageOpen = false; // Close WebView and return to the QR scanner
+        captchaSolved = false; // Reset captcha state
+      });
+
+      // Optionally, resume the camera to allow scanning another QR code
+      controller?.resumeCamera();
     }
-  }
-
-  void _showResultDialog(String title, String message) {
-    showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
   }
 }

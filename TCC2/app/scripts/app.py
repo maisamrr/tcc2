@@ -9,6 +9,7 @@ def home():
 
 @app.route('/process_receipt', methods=['POST'])
 def process_note():
+    print("aaaaaaa")
     data = request.json
     print(f"********************************** Recebido: {data}")
     url = data.get('url')
