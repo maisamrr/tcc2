@@ -1,9 +1,10 @@
 import 'dart:convert';
-import 'dart:developer';
+import 'package:app/screens/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'receiptdetails.dart';
 
 class ScanQrCode extends StatefulWidget {
   const ScanQrCode({super.key});
@@ -19,8 +20,8 @@ class _ScanQrCodeState extends State<ScanQrCode> {
   bool isProcessing = false;
   bool isCaptchaPageOpen = false;
   WebViewController? webViewController;
-  String? initialUrl; // Store the initial URL here
-  bool captchaSolved = false; // Track if CAPTCHA has been solved
+  String? initialUrl;
+  bool dataExtracted = false; // flag para nao fazer varias extracoes
 
   @override
   void reassemble() {
@@ -63,40 +64,20 @@ class _ScanQrCodeState extends State<ScanQrCode> {
               ],
             ),
           if (isCaptchaPageOpen)
-            Column(
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: WebView(
-                    initialUrl: result?.code, // Open the scanned URL in WebView
-                    javascriptMode: JavascriptMode.unrestricted,
-                    onWebViewCreated: (WebViewController controller) {
-                      webViewController = controller;
-                      initialUrl = result?.code; // Save the initial URL
-                    },
-                    onPageFinished: (url) {
-                      // No longer auto-trigger backend call; let the user click a button
-                      log('Page loaded: $url');
-                    },
-                  ),
-                ),
-                // Add a button for the user to click when the CAPTCHA is solved
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      // When the user presses the button, process the URL
-                      String? currentUrl = await webViewController?.currentUrl();
-                      if (currentUrl != null && _isCaptchaResolved(currentUrl)) {
-                        await _sendUrlToBackend(currentUrl);
-                      } else {
-                        log('CAPTCHA not resolved yet.');
-                      }
-                    },
-                    child: const Text('CAPTCHA Solved'),
-                  ),
-                ),
-              ],
+            WebView(
+              initialUrl: result?.code,
+              javascriptMode: JavascriptMode.unrestricted,
+              onWebViewCreated: (WebViewController controller) {
+                webViewController = controller;
+                initialUrl = result?.code; // salva url inicial
+              },
+              onPageFinished: (url) async {
+                debugPrint('MyApp: Page loaded $url');
+                if (_isCaptchaResolved(url) && !dataExtracted) {
+                  dataExtracted = true; 
+                  await _extractDataAndSendToBackend();
+                }
+              },
             ),
           if (isProcessing)
             const Center(
@@ -124,56 +105,102 @@ class _ScanQrCodeState extends State<ScanQrCode> {
         if (url != null && url.isNotEmpty) {
           controller.pauseCamera();
           setState(() {
-            isCaptchaPageOpen = true; // Show the WebView with the CAPTCHA page
-            isProcessing = false; // QR scanning is done, set isProcessing to false here
+            isCaptchaPageOpen = true; // mostrar webview com pagina do captcha
+            isProcessing = false; // acabou de escanear
           });
         }
       }
     });
   }
 
-  // Check if CAPTCHA is resolved by comparing the URL structure
+  // checar se captcha foi resolvido
   bool _isCaptchaResolved(String currentUrl) {
-    // Check if the URL has changed to the format "https://ww1..."
     if (initialUrl != null &&
+        initialUrl!.startsWith('http://www') &&
         currentUrl.startsWith('https://ww1') &&
         currentUrl != initialUrl) {
-      log('CAPTCHA solved, URL changed to: $currentUrl');
-      return true; // CAPTCHA resolved
+      debugPrint('MyApp: CAPTCHA resolvido, URL mudou para: $currentUrl');
+      return true;
     }
     return false;
   }
 
-  // Function to send the URL to the backend after CAPTCHA is resolved
-  Future<void> _sendUrlToBackend(String url) async {
+  // funcao para extrair infos do webview e enviar para o backend
+  Future<void> _extractDataAndSendToBackend() async {
     setState(() {
-      isProcessing = true; // Start processing the backend request
+      isProcessing = true;
     });
 
-    const backendUrl = 'http://localhost:5000/process_receipt'; // Your Flask backend URL
+    try {
+      // placeholder
+      String extractedData = '[{"item_name": "Item 1", "first_word": "Item"},{"item_name": "Item 2", "first_word": "Item"}]';
+
+      if (extractedData.isNotEmpty) {
+        debugPrint('MyApp: Extraído $extractedData');
+        await _sendDataToBackend(extractedData);
+
+        setState(() {
+          isProcessing = false;
+          isCaptchaPageOpen = false;
+        });
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Profile(), // teste
+          ),
+        );
+      } else {
+        debugPrint('MyApp: Falha ao extrair informações.');
+        // mostrar para o usuario erro
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Falha ao extrair informações.')),
+        );
+
+        setState(() {
+          isProcessing = false;
+          isCaptchaPageOpen = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('MyApp: Erro ao extrair informações: $e');
+      // mostrar para o usuario erro
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao extrair informações.')),
+      );
+
+      setState(() {
+        isProcessing = false;
+        isCaptchaPageOpen = false;
+      });
+    }
+  }
+
+  // funcao para enviar para o backend
+  Future<void> _sendDataToBackend(String data) async {
+    const backendUrl = 'http://192.168.0.10:5000/process_receipt';
     try {
       final response = await http.post(
         Uri.parse(backendUrl),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'url': url}),
+        body: jsonEncode({'data': data}),
       );
 
       if (response.statusCode == 200) {
-        log("Success: ${response.body}");
+        debugPrint('MyApp: Successo: ${response.body}');
       } else {
-        log("Error: ${response.body}");
+        debugPrint('MyApp: Erro: ${response.body}');
+        // mostrar para o usuario erro
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Falha ao processar informações no servidor.')),
+        );
       }
     } catch (e) {
-      log("Backend request failed: $e");
-    } finally {
-      setState(() {
-        isProcessing = false;
-        isCaptchaPageOpen = false; // Close WebView and return to the QR scanner
-        captchaSolved = false; // Reset captcha state
-      });
-
-      // Optionally, resume the camera to allow scanning another QR code
-      controller?.resumeCamera();
+      debugPrint('MyApp: Falha no request para backend: $e');
+      // mostrar para o usuario erro
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Falha ao conectar ao servidor.')),
+      );
     }
   }
 }
