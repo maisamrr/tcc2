@@ -3,6 +3,7 @@ import 'package:app/screens/allidentifiedrecipes.dart';
 import 'package:app/screens/allreceipts.dart';
 import 'package:app/screens/profile.dart';
 import 'package:app/screens/receiptdetails.dart';
+import 'package:app/screens/scanarcodeinstructions.dart';
 import 'package:app/screens/scanqrcode.dart';
 import 'package:app/screens/subscribe.dart';
 import 'package:app/screens/start.dart';
@@ -51,6 +52,7 @@ class MyApp extends StatelessWidget {
           '/waitingforrecipe': (context) => WaitingForRecipe(),
           '/allidentifiedrecipes': (context) => AllIdentifiedRecipes(),
           '/profile': (context) => Profile(),
+          '/scanqrcodeinstructions': (context) => ScanQrCodeInstructions(),
         },
       ),
     );

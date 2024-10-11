@@ -55,7 +55,7 @@ class TiletWidget extends StatelessWidget {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) =>
-                          destination, // Usando o novo parâmetro
+                          destination,
                     ),
                   );
                 },
