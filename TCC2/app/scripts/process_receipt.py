@@ -20,7 +20,6 @@ def process_receipt_logic(processed_items, receipt_id):
                 'item_name': row['item_name'],
                 'first_word': row['first_word']
             })
-        
         return {
             'message': 'Nota processada com sucesso.',
             'items': df_just_itens_name.to_dict(orient='records'),

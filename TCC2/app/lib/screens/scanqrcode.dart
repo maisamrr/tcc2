@@ -224,7 +224,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
   }
 
   Future<void> _sendDataToBackend(dynamic items) async {
-    const backendUrl = 'http://192.168.0.10:5000/process_receipt';
+    const backendUrl = 'http://192.168.0.9:5000/process_receipt';
     try {
       final response = await http.post(
         Uri.parse(backendUrl),
