@@ -1,4 +1,3 @@
-import json
 from flask import Flask, request, jsonify
 from process_receipt import process_receipt_logic
 
@@ -12,17 +11,13 @@ def home():
 def process_note():
     data = request.json
     extracted_data = data.get('data')
+    receipt_id = data.get('receipt_id')
+    if not extracted_data or not receipt_id:
+        return jsonify({'error': 'Nota fiscal sem conteúdo ou identificação.'}), 400
 
-    if not extracted_data:
-        return jsonify({'error': 'Data not provided'}), 400
+    processed_items = extracted_data
 
-    try:
-        processed_items = json.loads(extracted_data)
-    except json.JSONDecodeError as e:
-        print(f"JSON decode error: {e}")
-        return jsonify({'error': 'Invalid data format'}), 400
-
-    result = process_receipt_logic(processed_items)
+    result = process_receipt_logic(processed_items, receipt_id)
 
     if 'error' in result:
         return jsonify(result), 500

@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'package:app/screens/profile.dart';
+import 'receiptdetails.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:http/http.dart' as http;
-import 'receiptdetails.dart';
-
 class ScanQrCode extends StatefulWidget {
   const ScanQrCode({super.key});
 
@@ -21,7 +20,8 @@ class _ScanQrCodeState extends State<ScanQrCode> {
   bool isCaptchaPageOpen = false;
   WebViewController? webViewController;
   String? initialUrl;
-  bool dataExtracted = false; // flag para nao fazer varias extracoes
+  bool dataExtracted = false;
+  String? receiptId;
 
   @override
   void reassemble() {
@@ -69,12 +69,12 @@ class _ScanQrCodeState extends State<ScanQrCode> {
               javascriptMode: JavascriptMode.unrestricted,
               onWebViewCreated: (WebViewController controller) {
                 webViewController = controller;
-                initialUrl = result?.code; // salva url inicial
+                initialUrl = result?.code;
               },
               onPageFinished: (url) async {
                 debugPrint('MyApp: ******* Início ******** Página carregada $url');
                 if (_isCaptchaResolved(url) && !dataExtracted) {
-                  dataExtracted = true; 
+                  dataExtracted = true;
                   debugPrint('MyApp: Aguardando 10 segundos para a página carregar');
                   await Future.delayed(const Duration(seconds: 10));
                   await _extractDataAndSendToBackend();
@@ -100,6 +100,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
         setState(() {
           isProcessing = true;
           result = scanData;
+          receiptId = _generateReceiptId(); 
         });
 
         final url = result?.code;
@@ -107,33 +108,34 @@ class _ScanQrCodeState extends State<ScanQrCode> {
         if (url != null && url.isNotEmpty) {
           controller.pauseCamera();
           setState(() {
-            isCaptchaPageOpen = true; // mostrar webview com pagina do captcha
-            isProcessing = false; // acabou de escanear
+            isCaptchaPageOpen = true; 
+            isProcessing = false; 
           });
         }
       }
     });
   }
 
-  // checar se captcha foi resolvido
+  String _generateReceiptId() {
+    final now = DateTime.now().toUtc();
+    final formatter = DateFormat('ddMMyyyy');
+    return formatter.format(now);
+  }
+
   bool _isCaptchaResolved(String currentUrl) {
-    if (initialUrl != null &&
-        currentUrl != initialUrl) {
+    if (initialUrl != null && currentUrl != initialUrl) {
       debugPrint('MyApp: CAPTCHA resolvido, URL mudou de $initialUrl para $currentUrl');
       return true;
     }
     return false;
   }
 
-  // funcao para extrair infos do webview e enviar para o backend
   Future<void> _extractDataAndSendToBackend() async {
     setState(() {
       isProcessing = true;
     });
 
     try {
-      // placeholder String extractedData = '[{"item_name": "Item 1", "first_word": "Item"},{"item_name": "Item 2", "first_word": "Item"}]';
-
       String extractedData = await webViewController!.runJavascriptReturningResult(
         """
         (function() {
@@ -170,16 +172,18 @@ class _ScanQrCodeState extends State<ScanQrCode> {
         """
       );
 
-      // Clean up the returned string if necessary
       extractedData = extractedData.replaceAll('\\n', '').replaceAll('\\"', '"').trim();
+      if (extractedData.startsWith('"') && extractedData.endsWith('"')) {
+        extractedData = extractedData.substring(1, extractedData.length - 1);
+      }
+      extractedData = extractedData.replaceAll(r'\"', '"');
 
-      String pageContent = await webViewController!.runJavascriptReturningResult(
-  "document.documentElement.outerHTML");
-      debugPrint('MyApp: ************ HTML da página ********** $pageContent');
+      var items = jsonDecode(extractedData);
 
-      if (extractedData.isNotEmpty) {
-        debugPrint('MyApp: Extraído $extractedData');
-        await _sendDataToBackend(extractedData);
+      if (items.isNotEmpty) {
+        debugPrint('MyApp: Extraído $items');
+
+        await _sendDataToBackend(items);
 
         setState(() {
           isProcessing = false;
@@ -189,12 +193,14 @@ class _ScanQrCodeState extends State<ScanQrCode> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ReceiptDetails(title: 'Nota fiscal', items: [],), // teste
+            builder: (context) => ReceiptDetails(
+              title: 'Nota fiscal',
+              items: items,
+            ),
           ),
         );
       } else {
         debugPrint('MyApp: Falha ao extrair informações.');
-        // mostrar para o usuario erro
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Falha ao extrair informações.')),
         );
@@ -206,7 +212,6 @@ class _ScanQrCodeState extends State<ScanQrCode> {
       }
     } catch (e) {
       debugPrint('MyApp: Erro ao extrair informações: $e');
-      // mostrar para o usuario erro
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Erro ao extrair informações.')),
       );
@@ -218,28 +223,28 @@ class _ScanQrCodeState extends State<ScanQrCode> {
     }
   }
 
-  // funcao para enviar para o backend
-  Future<void> _sendDataToBackend(String data) async {
-    const backendUrl = 'http://172.27.2.147:5000/process_receipt';
+  Future<void> _sendDataToBackend(dynamic items) async {
+    const backendUrl = 'http://192.168.0.10:5000/process_receipt';
     try {
       final response = await http.post(
         Uri.parse(backendUrl),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'data': data}),
+        body: jsonEncode({
+          'data': items,
+          'receipt_id': receiptId,
+        }),
       );
 
       if (response.statusCode == 200) {
-        debugPrint('MyApp: Successo: ${response.body}');
+        debugPrint('MyApp: Sucesso: ${response.body}');
       } else {
         debugPrint('MyApp: Erro: ${response.body}');
-        // mostrar para o usuario erro
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Falha ao processar informações no servidor.')),
         );
       }
     } catch (e) {
       debugPrint('MyApp: Falha no request para backend: $e');
-      // mostrar para o usuario erro
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Falha ao conectar ao servidor.')),
       );

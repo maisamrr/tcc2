@@ -46,7 +46,7 @@ class _HomeState extends State<Home> {
                 // Imagem de fundo
                 Positioned.fill(
                   child: Image.asset(
-                    'assets/images/back04.png',
+                    'assets/images/back05.png',
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -114,11 +114,10 @@ class _HomeState extends State<Home> {
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
-                                    return CircularProgressIndicator(); 
+                                    return CircularProgressIndicator();
                                   }
                                   if (snapshot.hasError || !snapshot.hasData) {
-                                    return Text(
-                                        'Erro ao carregar receita');
+                                    return Text('Erro ao carregar receita');
                                   }
 
                                   final recipe = snapshot.data!;
@@ -136,7 +135,7 @@ class _HomeState extends State<Home> {
                           );
                         },
                       ),
-                    )
+                    ),
                   ],
                 ),
               ],

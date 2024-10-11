@@ -24,6 +24,7 @@ dependencies:
   url_launcher: ^6.1.7
   android_intent_plus: ^3.0.0
   webview_flutter: 3.0.4
+  intl: ^0.17.0
 
 dependency_overrides:
   camera_android_camerax: 0.6.7 
@@ -43,6 +44,7 @@ flutter:
     - assets/images/back02.png
     - assets/images/back03.png
     - assets/images/back04.png
+    - assets/images/back05.png
     - assets/images/home.svg
     - assets/images/camera.svg
     - assets/images/receipt.svg

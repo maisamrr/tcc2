@@ -40,7 +40,7 @@ class ReceiptDetails extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 32),
                 child: Text(
-                  'Detalhes da nota fiscal',
+                  'Detalhes dos itens processados',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -93,7 +93,7 @@ class ReceiptDetails extends StatelessWidget {
                                   ),
                                 ),
                                 subtitle: Text(
-                                  'Primeira Palavra: ${item['first_word'] ?? ''}',
+                                  'Palavra-chave: ${item['first_word'] ?? ''}',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontFamily: 'Inter',

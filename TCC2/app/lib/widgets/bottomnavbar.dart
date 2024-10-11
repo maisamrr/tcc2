@@ -1,7 +1,6 @@
+import 'package:app/const.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:app/const.dart';
-
 class BottomNavBar extends StatefulWidget {
   final int selectedIndex;
   const BottomNavBar({
@@ -29,7 +28,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
     },
     {
       'icon': 'assets/images/camera.svg',
-      'route': '/scanqrcode',
+      'route': '/scanqrcodeinstructions',
     },
     {
       'icon': 'assets/images/receipt.svg',
