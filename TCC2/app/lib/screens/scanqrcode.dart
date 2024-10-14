@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:app/screens/recipedetails.dart';
+
 import 'receiptdetails.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -190,15 +192,15 @@ class _ScanQrCodeState extends State<ScanQrCode> {
           isCaptchaPageOpen = false;
         });
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ReceiptDetails(
-              title: 'Nota fiscal',
-              items: items,
-            ),
-          ),
-        );
+        //Navigator.push(
+        //  context,
+        //  MaterialPageRoute(
+        //    builder: (context) => ReceiptDetails(
+        //      title: 'Nota fiscal',
+        //      items: items,
+        //    ),
+        //  ),
+        //);
       } else {
         debugPrint('MyApp: Falha ao extrair informações.');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -223,31 +225,51 @@ class _ScanQrCodeState extends State<ScanQrCode> {
     }
   }
 
-  Future<void> _sendDataToBackend(dynamic items) async {
-    const backendUrl = 'http://192.168.0.9:5000/process_receipt';
-    try {
-      final response = await http.post(
-        Uri.parse(backendUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'data': items,
-          'receipt_id': receiptId,
-        }),
-      );
+Future<void> _sendDataToBackend(dynamic items) async {
+  const backendUrl = 'http://192.168.0.9:5000/process_receipt';  
+  try {
+    final response = await http.post(
+      Uri.parse(backendUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'data': items,
+        'receipt_id': receiptId,
+      }),
+    );
 
-      if (response.statusCode == 200) {
-        debugPrint('MyApp: Sucesso: ${response.body}');
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      debugPrint('MyApp: Sucesso: ${response.body}');
+
+      if (responseData != null && responseData.containsKey('Receita')) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RecipeDetails(
+              title: responseData['Receita'],  // Nome da receita
+              items: List<String>.from(responseData['Ingredientes']),  // Lista de ingredientes
+              servings: responseData['Porções'].toString(),  // Porções
+              prepare: List<String>.from(responseData['Instruções']),  // Instruções
+            ),
+          ),
+        );
       } else {
-        debugPrint('MyApp: Erro: ${response.body}');
+        debugPrint('MyApp: Nenhuma receita relevante encontrada.');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Falha ao processar informações no servidor.')),
+          const SnackBar(content: Text('Nenhuma receita encontrada.')),
         );
       }
-    } catch (e) {
-      debugPrint('MyApp: Falha no request para backend: $e');
+    } else {
+      debugPrint('MyApp: Erro no servidor: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Falha ao conectar ao servidor.')),
+        const SnackBar(content: Text('Falha ao processar informações no servidor.')),
       );
     }
+  } catch (e) {
+    debugPrint('MyApp: Falha na requisição para o backend: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Falha ao conectar ao servidor.')),
+    );
   }
+}
 }

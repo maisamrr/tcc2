@@ -152,7 +152,7 @@ class RecipeDetails extends StatelessWidget {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 8.0),
                                 child: Text(
-                                  '${index + 1}. ${prepare[index]}',
+                                  prepare[index],
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontFamily: 'Inter',

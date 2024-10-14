@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import re
 from flask import Flask, request, jsonify
 from process_receipt import process_receipt_logic
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -8,6 +9,14 @@ from sklearn.metrics.pairwise import cosine_similarity
 app = Flask(__name__)
 
 cached_ingredients_list = None
+def ordenar_instrucoes(instrucoes):
+    def extrair_numero(instrucao):
+        match = re.match(r'^(\d+)\.', instrucao)  # Procura por um número seguido de ponto
+        return int(match.group(1)) if match else float('inf')  # Retorna o número ou um valor alto se não encontrar
+
+    # Ordenar as instruções com base no número extraído
+    instrucoes_ordenadas = sorted(instrucoes, key=extrair_numero)
+    return instrucoes_ordenadas
 
 def levenshtein_distance(s1, s2):
     if len(s1) < len(s2):
@@ -59,19 +68,19 @@ def calculate_similarity(mapped_items_manual):
     # Criar o vetorizador TF-IDF e calcular a similaridade
     tfidf_vectorizer = TfidfVectorizer()
     tfidf_matrix = tfidf_vectorizer.fit_transform([nota_ingredients_str] + receitas_ingredients_str.tolist())
-    
+
     # Calcular a similaridade coseno entre a nota fiscal e as receitas
     cosine_similarities = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
 
     # Encontrar a receita com a maior similaridade e verificar a relevância
     best_match_index = cosine_similarities.argmax()
-    best_match_score = cosine_similarities[best_match_index]
-    
+    best_match_score = float(cosine_similarities[best_match_index])  # Converter para float padrão
+
     if best_match_score < 0.1:
         return {'message': 'Nenhuma receita relevante encontrada', 'score': best_match_score}
-    
-    best_match_recipe = recipes_df.iloc[best_match_index]
-    best_match_recipe['similarity_score'] = best_match_score
+
+    best_match_recipe = recipes_df.iloc[[best_match_index]].copy()  # Garantir que estamos trabalhando com uma cópia
+    best_match_recipe.loc[:, 'similarity_score'] = best_match_score
     return best_match_recipe
 
 @app.route('/')
@@ -97,9 +106,22 @@ def process_note():
     mapped_items_manual = map_items_to_ingredients(cleaned_items, ingredients_list)
 
     best_match_recipe = calculate_similarity(mapped_items_manual)
-    print(best_match_recipe)
-    
-    return jsonify(result), 200
 
+    ingredientes_list = eval(best_match_recipe['Ingredientes'].iloc[0])
+    instrucoes_list = eval(best_match_recipe['Instruções'].iloc[0])
+
+    # Ordenar as instruções
+    instrucoes_ordenadas = ordenar_instrucoes(instrucoes_list)
+
+    # Construir a resposta JSON com tipos de dados nativos
+    best_match_recipe = {
+        'Receita': best_match_recipe['Receita'].iloc[0],
+        'Porções': int(best_match_recipe['Porções'].iloc[0]),
+        'Ingredientes': list(ingredientes_list),
+        'Instruções': instrucoes_ordenadas,  # Instruções ordenadas
+        'similarity_score': float(best_match_recipe['similarity_score'].iloc[0]),
+    }
+
+    return jsonify(best_match_recipe), 200
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
