@@ -72,16 +72,18 @@ def calculate_similarity(mapped_items_manual):
     # Calcular a similaridade coseno entre a nota fiscal e as receitas
     cosine_similarities = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
 
-    # Encontrar a receita com a maior similaridade e verificar a relevância
-    best_match_index = cosine_similarities.argmax()
-    best_match_score = float(cosine_similarities[best_match_index])  # Converter para float padrão
+    # Pegar os índices das 3 receitas com maior similaridade
+    top_3_indices = cosine_similarities.argsort()[-3:][::-1]
+    top_3_scores = cosine_similarities[top_3_indices]
 
-    if best_match_score < 0.1:
-        return {'message': 'Nenhuma receita relevante encontrada', 'score': best_match_score}
+    if top_3_scores[0] < 0.1:
+        return {'message': 'Nenhuma receita relevante encontrada', 'scores': top_3_scores.tolist()}
 
-    best_match_recipe = recipes_df.iloc[[best_match_index]].copy()  # Garantir que estamos trabalhando com uma cópia
-    best_match_recipe.loc[:, 'similarity_score'] = best_match_score
-    return best_match_recipe
+    top_3_recipes = recipes_df.iloc[top_3_indices].copy()
+    top_3_recipes.loc[:, 'similarity_score'] = top_3_scores
+
+    return top_3_recipes
+
 
 @app.route('/')
 def home():
@@ -105,23 +107,31 @@ def process_note():
     cleaned_items = clean_extracted_data(processed_items)
     mapped_items_manual = map_items_to_ingredients(cleaned_items, ingredients_list)
 
-    best_match_recipe = calculate_similarity(mapped_items_manual)
+    top_3_recipes = calculate_similarity(mapped_items_manual)
 
-    ingredientes_list = eval(best_match_recipe['Ingredientes'].iloc[0])
-    instrucoes_list = eval(best_match_recipe['Instruções'].iloc[0])
+    if 'message' in top_3_recipes:
+        return jsonify(top_3_recipes), 200
 
-    # Ordenar as instruções
-    instrucoes_ordenadas = ordenar_instrucoes(instrucoes_list)
+    # Construir a resposta com as 3 melhores receitas
+    recipes_response = []
+    for _, row in top_3_recipes.iterrows():
+        ingredientes_list = eval(row['Ingredientes'])
+        instrucoes_list = eval(row['Instruções'])
 
-    # Construir a resposta JSON com tipos de dados nativos
-    best_match_recipe = {
-        'Receita': best_match_recipe['Receita'].iloc[0],
-        'Porções': int(best_match_recipe['Porções'].iloc[0]),
-        'Ingredientes': list(ingredientes_list),
-        'Instruções': instrucoes_ordenadas,  # Instruções ordenadas
-        'similarity_score': float(best_match_recipe['similarity_score'].iloc[0]),
-    }
+        # Ordenar as instruções
+        instrucoes_ordenadas = ordenar_instrucoes(instrucoes_list)
 
-    return jsonify(best_match_recipe), 200
+        # Adicionar cada receita ao resultado
+        recipes_response.append({
+            'Receita': row['Receita'],
+            'Porções': int(row['Porções']),
+            'Ingredientes': list(ingredientes_list),
+            'Instruções': instrucoes_ordenadas,  # Instruções ordenadas
+            'similarity_score': float(row['similarity_score']),
+        })
+    
+    print(recipes_response)
+    return jsonify(recipes_response), 200
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)

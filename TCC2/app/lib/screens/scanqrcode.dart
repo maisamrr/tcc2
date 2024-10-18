@@ -192,15 +192,6 @@ class _ScanQrCodeState extends State<ScanQrCode> {
           isCaptchaPageOpen = false;
         });
 
-        //Navigator.push(
-        //  context,
-        //  MaterialPageRoute(
-        //    builder: (context) => ReceiptDetails(
-        //      title: 'Nota fiscal',
-        //      items: items,
-        //    ),
-        //  ),
-        //);
       } else {
         debugPrint('MyApp: Falha ao extrair informações.');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -226,7 +217,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
   }
 
 Future<void> _sendDataToBackend(dynamic items) async {
-  const backendUrl = 'http://192.168.0.9:5000/process_receipt';  
+  const backendUrl = 'http://192.168.0.9:5000/process_receipt';
   try {
     final response = await http.post(
       Uri.parse(backendUrl),
@@ -241,15 +232,18 @@ Future<void> _sendDataToBackend(dynamic items) async {
       final responseData = jsonDecode(response.body);
       debugPrint('MyApp: Sucesso: ${response.body}');
 
-      if (responseData != null && responseData.containsKey('Receita')) {
+      if (responseData != null && responseData is List) {
+        // Passa a lista de receitas para a tela de detalhes
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => RecipeDetails(
-              title: responseData['Receita'],  // Nome da receita
-              items: List<String>.from(responseData['Ingredientes']),  // Lista de ingredientes
-              servings: responseData['Porções'].toString(),  // Porções
-              prepare: List<String>.from(responseData['Instruções']),  // Instruções
+            builder: (context) => RecipeDetailsPage(
+              recipes: responseData.map((recipe) => Recipe(
+                title: recipe['Receita'],
+                items: List<String>.from(recipe['Ingredientes']),
+                servings: recipe['Porções'].toString(),
+                prepare: List<String>.from(recipe['Instruções']),
+              )).toList(),
             ),
           ),
         );
@@ -272,4 +266,5 @@ Future<void> _sendDataToBackend(dynamic items) async {
     );
   }
 }
+
 }
