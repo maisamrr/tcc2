@@ -15,7 +15,6 @@ class Recipe {
   });
 }
 
-
 class RecipeDetails extends StatelessWidget {
   final String title;
   final List<String> items;
@@ -59,24 +58,29 @@ class RecipeDetails extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      title,
-                      style: TextStyle(
+                    Flexible(
+                      child: Text(
+                        title,
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: darkGreyColor),
+                          color: darkGreyColor,
+                        ),
+                        maxLines: 2, 
+                        overflow: TextOverflow
+                            .ellipsis,
+                      ),
                     ),
                     GestureDetector(
-                  child: Icon(
-                    Icons.bookmark_add_outlined,
-                    size: 32,
-                    color: darkGreyColor,
-                  ),
-                  onTap: () {
-                    Navigator.of(context)
-                        .pushReplacementNamed('/allidentifiedrecipes'); //salvar receita
-                  },
-                ),
+                      child: Icon(
+                        Icons.bookmark_add_outlined,
+                        size: 32,
+                        color: darkGreyColor,
+                      ),
+                      onTap: () {
+                        // Save recipe logic
+                      },
+                    ),
                   ],
                 ),
               ),

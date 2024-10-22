@@ -1,12 +1,12 @@
 import 'dart:convert';
-import 'package:app/screens/recipedetails.dart';
-
-import 'receiptdetails.dart';
+import 'package:app/screens/matchedrecipes.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:app/screens/recipedetails.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
 class ScanQrCode extends StatefulWidget {
   const ScanQrCode({super.key});
 
@@ -74,18 +74,41 @@ class _ScanQrCodeState extends State<ScanQrCode> {
                 initialUrl = result?.code;
               },
               onPageFinished: (url) async {
-                debugPrint('MyApp: ******* Início ******** Página carregada $url');
+                debugPrint('Página carregada: $url');
                 if (_isCaptchaResolved(url) && !dataExtracted) {
                   dataExtracted = true;
-                  debugPrint('MyApp: Aguardando 10 segundos para a página carregar');
                   await Future.delayed(const Duration(seconds: 10));
                   await _extractDataAndSendToBackend();
                 }
               },
             ),
           if (isProcessing)
-            const Center(
-              child: CircularProgressIndicator(),
+            // overlay e barra de progresso
+            SizedBox.expand(
+              child: Container(
+                color: Colors.black.withOpacity(0.5),
+                child: const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(
+                            0xFFFB83E8)), // Pink color for the progress indicator
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Processando...',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'PP Neue Montreal',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
         ],
       ),
@@ -102,7 +125,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
         setState(() {
           isProcessing = true;
           result = scanData;
-          receiptId = _generateReceiptId(); 
+          receiptId = _generateReceiptId();
         });
 
         final url = result?.code;
@@ -110,8 +133,8 @@ class _ScanQrCodeState extends State<ScanQrCode> {
         if (url != null && url.isNotEmpty) {
           controller.pauseCamera();
           setState(() {
-            isCaptchaPageOpen = true; 
-            isProcessing = false; 
+            isCaptchaPageOpen = true;
+            isProcessing = false;
           });
         }
       }
@@ -126,7 +149,8 @@ class _ScanQrCodeState extends State<ScanQrCode> {
 
   bool _isCaptchaResolved(String currentUrl) {
     if (initialUrl != null && currentUrl != initialUrl) {
-      debugPrint('MyApp: CAPTCHA resolvido, URL mudou de $initialUrl para $currentUrl');
+      debugPrint(
+          'CAPTCHA resolvido: URL mudou de $initialUrl para $currentUrl');
       return true;
     }
     return false;
@@ -138,29 +162,25 @@ class _ScanQrCodeState extends State<ScanQrCode> {
     });
 
     try {
-      String extractedData = await webViewController!.runJavascriptReturningResult(
-        """
+      String extractedData =
+          await webViewController!.runJavascriptReturningResult("""
         (function() {
           var ulElement = document.querySelector('ul');
           var ulText = ulElement ? ulElement.innerText : '';
           var itemsList = ulText.split('\\n').filter(Boolean);
 
-          // Filter items containing '(Cód: \\w+)'
           itemsList = itemsList.filter(function(item) {
             return /\\(Cód: \\w+\\)/.test(item);
           });
 
-          // Remove ' (Cód: S\\d+)' pattern
           itemsList = itemsList.map(function(item) {
             return item.replace(/\\s\\(Cód: S\\d+\\)/, '');
           });
 
-          // Remove quantities and units
           itemsList = itemsList.map(function(item) {
             return item.replace(/\\d+[Xx]\\d+\\w*|\\d+\\w*|\\d+/g, '').trim();
           });
 
-          // Extract the first word and prepare the final array
           var processedItems = itemsList.map(function(item) {
             var firstWord = item.split(' ')[0];
             return {
@@ -171,10 +191,10 @@ class _ScanQrCodeState extends State<ScanQrCode> {
 
           return JSON.stringify(processedItems);
         })();
-        """
-      );
+        """);
 
-      extractedData = extractedData.replaceAll('\\n', '').replaceAll('\\"', '"').trim();
+      extractedData =
+          extractedData.replaceAll('\\n', '').replaceAll('\\"', '"').trim();
       if (extractedData.startsWith('"') && extractedData.endsWith('"')) {
         extractedData = extractedData.substring(1, extractedData.length - 1);
       }
@@ -183,17 +203,15 @@ class _ScanQrCodeState extends State<ScanQrCode> {
       var items = jsonDecode(extractedData);
 
       if (items.isNotEmpty) {
-        debugPrint('MyApp: Extraído $items');
-
+        debugPrint('Extraído: $items');
         await _sendDataToBackend(items);
 
         setState(() {
           isProcessing = false;
           isCaptchaPageOpen = false;
         });
-
       } else {
-        debugPrint('MyApp: Falha ao extrair informações.');
+        debugPrint('Falha ao extrair informações.');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Falha ao extrair informações.')),
         );
@@ -204,7 +222,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
         });
       }
     } catch (e) {
-      debugPrint('MyApp: Erro ao extrair informações: $e');
+      debugPrint('Erro ao extrair informações: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Erro ao extrair informações.')),
       );
@@ -216,55 +234,57 @@ class _ScanQrCodeState extends State<ScanQrCode> {
     }
   }
 
-Future<void> _sendDataToBackend(dynamic items) async {
-  const backendUrl = 'http://192.168.0.9:5000/process_receipt';
-  try {
-    final response = await http.post(
-      Uri.parse(backendUrl),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'data': items,
-        'receipt_id': receiptId,
-      }),
-    );
+  Future<void> _sendDataToBackend(dynamic items) async {
+    const backendUrl =
+        'https://backend-notasculinarias.onrender.com/process_receipt';
+    try {
+      final response = await http.post(
+        Uri.parse(backendUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'data': items,
+          'receipt_id': receiptId,
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      debugPrint('MyApp: Sucesso: ${response.body}');
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        debugPrint('Sucesso: ${response.body}');
 
-      if (responseData != null && responseData is List) {
-        // Passa a lista de receitas para a tela de detalhes
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RecipeDetailsPage(
-              recipes: responseData.map((recipe) => Recipe(
-                title: recipe['Receita'],
-                items: List<String>.from(recipe['Ingredientes']),
-                servings: recipe['Porções'].toString(),
-                prepare: List<String>.from(recipe['Instruções']),
-              )).toList(),
+        if (responseData != null && responseData is List) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MatchedRecipesScreen(
+                recipes: responseData.map<Map<String, dynamic>>((recipe) {
+                  return {
+                    'title': recipe['Receita'],
+                    'items': List<String>.from(recipe['Ingredientes']),
+                    'servings': recipe['Porções'].toString(),
+                    'prepare': List<String>.from(recipe['Instruções']),
+                  };
+                }).toList(),
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          debugPrint('Nenhuma receita relevante encontrada.');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Nenhuma receita encontrada.')),
+          );
+        }
       } else {
-        debugPrint('MyApp: Nenhuma receita relevante encontrada.');
+        debugPrint('Erro no servidor: ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nenhuma receita encontrada.')),
+          const SnackBar(
+              content: Text('Falha ao processar informações no servidor.')),
         );
       }
-    } else {
-      debugPrint('MyApp: Erro no servidor: ${response.body}');
+    } catch (e) {
+      debugPrint('Falha na requisição para o backend: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Falha ao processar informações no servidor.')),
+        const SnackBar(content: Text('Falha ao conectar ao servidor.')),
       );
     }
-  } catch (e) {
-    debugPrint('MyApp: Falha na requisição para o backend: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Falha ao conectar ao servidor.')),
-    );
   }
-}
-
 }
