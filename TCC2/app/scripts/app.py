@@ -49,6 +49,21 @@ def load_ingredients():
         cached_ingredients_list = all_ingredients_df['Ingrediente'].str.lower().tolist()
     return cached_ingredients_list
 
+def get_correct_ingredients(recipe_name):
+    # Carregar o CSV que contém os ingredientes corretos
+    receitas_porcoes_df = pd.read_csv('data/todas_receitas_porcoeslimpas.csv')
+
+    # Procurar a receita pelo nome e pegar os ingredientes corretos
+    receita = receitas_porcoes_df[receitas_porcoes_df['Receita'].str.lower() == recipe_name.lower()]
+    
+    if not receita.empty:
+        ingredientes_str = receita.iloc[0]['Ingredientes']
+        # Retornar a lista de ingredientes
+        return eval(ingredientes_str)  # Transformar string de volta em lista
+    else:
+        return []
+
+
 def clean_extracted_data(processed_items):
     df = pd.DataFrame(processed_items)
     df['item_name'] = df['item_name'].str.replace(r' \(Cód: \)', '', regex=True)
@@ -115,7 +130,9 @@ def process_note():
     # Construir a resposta com as 3 melhores receitas
     recipes_response = []
     for _, row in top_3_recipes.iterrows():
-        ingredientes_list = eval(row['Ingredientes'])
+        # Obter os ingredientes corretos da receita usando o nome da receita
+        ingredientes_list = get_correct_ingredients(row['Receita'])
+
         instrucoes_list = eval(row['Instruções'])
 
         # Ordenar as instruções
