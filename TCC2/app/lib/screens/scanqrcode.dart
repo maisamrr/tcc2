@@ -262,6 +262,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
                     'items': List<String>.from(recipe['Ingredientes']),
                     'servings': recipe['Porções'].toString(),
                     'prepare': List<String>.from(recipe['Instruções']),
+                    'similarity_score': recipe['similarity_score']
                   };
                 }).toList(),
               ),

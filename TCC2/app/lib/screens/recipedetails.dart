@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:app/const.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:flutter/services.dart';
+import '../../secrets/config.dart';
 class Recipe {
   final String title;
   final List<String> items;
@@ -15,7 +19,8 @@ class Recipe {
   });
 }
 
-class RecipeDetails extends StatelessWidget {
+
+class RecipeDetails extends StatefulWidget {
   final String title;
   final List<String> items;
   final String servings;
@@ -28,6 +33,70 @@ class RecipeDetails extends StatelessWidget {
     required this.servings,
     required this.prepare,
   });
+
+  @override
+  _RecipeDetailsState createState() => _RecipeDetailsState();
+}
+
+class _RecipeDetailsState extends State<RecipeDetails> {
+  YoutubePlayerController? _youtubePlayerController;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadYoutubeVideo();
+  }
+
+  Future<void> _loadYoutubeVideo() async {
+    final videoId = await fetchYoutubeVideoId(widget.title);
+    if (videoId != null) {
+      _youtubePlayerController = YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: false,
+          mute: false,
+          showLiveFullscreenButton: false,
+          hideControls: false
+        ),
+      )..addListener(() {
+    if (_youtubePlayerController!.value.isFullScreen) {
+      _youtubePlayerController!.toggleFullScreenMode();
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+      ]);
+    }
+  })..addListener(() {
+    if (_youtubePlayerController!.value.isFullScreen) {
+      _youtubePlayerController!.toggleFullScreenMode();
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+      ]);
+    }
+  });;
+      setState(() {}); // Atualiza a UI para mostrar o player
+    }
+  }
+
+  Future<String?> fetchYoutubeVideoId(String query) async {
+    final url = Uri.parse(
+        'https://www.googleapis.com/youtube/v3/search?part=snippet&q=$query&type=video&maxResults=1&key=$googleApiKey');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['items'].isNotEmpty) {
+        return data['items'][0]['id']['videoId'];
+      }
+    }
+    return null;
+  }
+
+  @override
+  void dispose() {
+    _youtubePlayerController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +116,7 @@ class RecipeDetails extends StatelessWidget {
                     color: darkGreyColor,
                   ),
                   onTap: () {
-                    Navigator.of(context)
-                        .pushReplacementNamed('/allidentifiedrecipes');
+                     Navigator.pop(context);
                   },
                 ),
               ),
@@ -60,15 +128,14 @@ class RecipeDetails extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        title,
+                        widget.title,
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: darkGreyColor,
                         ),
-                        maxLines: 2, 
-                        overflow: TextOverflow
-                            .ellipsis,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     GestureDetector(
@@ -78,7 +145,7 @@ class RecipeDetails extends StatelessWidget {
                         color: darkGreyColor,
                       ),
                       onTap: () {
-                        // Save recipe logic
+                        // Lógica para salvar a receita
                       },
                     ),
                   ],
@@ -105,20 +172,20 @@ class RecipeDetails extends StatelessWidget {
                           Text(
                             'Ingredientes',
                             style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'PP Neue Montreal',
-                                color: darkGreyColor),
-                            textAlign: TextAlign.left,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'PP Neue Montreal',
+                              color: darkGreyColor,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           ListView.separated(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: items.length,
+                            itemCount: widget.items.length,
                             itemBuilder: (context, index) {
                               return Text(
-                                items[index],
+                                widget.items[index],
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontFamily: 'Inter',
@@ -137,15 +204,15 @@ class RecipeDetails extends StatelessWidget {
                           Text(
                             'Rendimento',
                             style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'PP Neue Montreal',
-                                color: darkGreyColor),
-                            textAlign: TextAlign.left,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'PP Neue Montreal',
+                              color: darkGreyColor,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            servings,
+                            widget.servings,
                             style: TextStyle(
                               fontSize: 14,
                               fontFamily: 'Inter',
@@ -156,22 +223,22 @@ class RecipeDetails extends StatelessWidget {
                           Text(
                             'Modo de preparo',
                             style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'PP Neue Montreal',
-                                color: darkGreyColor),
-                            textAlign: TextAlign.left,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'PP Neue Montreal',
+                              color: darkGreyColor,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: prepare.length,
+                            itemCount: widget.prepare.length,
                             itemBuilder: (context, index) {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 8.0),
                                 child: Text(
-                                  prepare[index],
+                                  widget.prepare[index],
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontFamily: 'Inter',
@@ -181,6 +248,26 @@ class RecipeDetails extends StatelessWidget {
                               );
                             },
                           ),
+                          const SizedBox(height: 16),
+                          if (_youtubePlayerController != null)
+                            Column(
+                              children: [
+                                Text(
+                                  'Vídeo de instruções',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'PP Neue Montreal',
+                                    color: darkGreyColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                YoutubePlayer(
+                                  controller: _youtubePlayerController!,
+                                  showVideoProgressIndicator: true,
+                                ),
+                              ],
+                            ),
                           const SizedBox(height: 40),
                         ],
                       ),

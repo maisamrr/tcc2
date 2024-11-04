@@ -25,7 +25,8 @@ dependencies:
   android_intent_plus: ^3.0.0
   webview_flutter: 3.0.4
   intl: ^0.17.0
-
+  youtube_player_flutter: ^9.1.1
+  percent_indicator: ^4.2.3
 dependency_overrides:
   camera_android_camerax: 0.6.7 
   video_player_android: 2.6.0

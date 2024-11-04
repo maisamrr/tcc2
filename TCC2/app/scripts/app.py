@@ -147,7 +147,6 @@ def process_note():
             'similarity_score': float(row['similarity_score']),
         })
     
-    print(recipes_response)
     return jsonify(recipes_response), 200
 
 if __name__ == '__main__':
