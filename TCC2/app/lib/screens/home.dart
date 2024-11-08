@@ -1,10 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:app/const.dart';
 import 'package:app/services/user_service.dart';
 import 'package:app/store/user_store.dart';
 import 'package:app/widgets/profilepicwidget.dart';
 import 'package:app/widgets/recipecardwidget.dart';
-import 'package:flutter/material.dart';
 import 'package:app/widgets/bottomnavbar.dart';
+import 'package:app/screens/recipedetails.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 class Home extends StatefulWidget {
@@ -43,7 +44,6 @@ class _HomeState extends State<Home> {
           Positioned.fill(
             child: Stack(
               children: [
-                // Imagem de fundo
                 Positioned.fill(
                   child: Image.asset(
                     'assets/images/back05.png',
@@ -60,9 +60,7 @@ class _HomeState extends State<Home> {
                         children: [
                           Row(
                             children: [
-                              // Foto
                               const ProfilePicWidget(),
-                              // Nome
                               Padding(
                                 padding: const EdgeInsets.only(left: 24.0),
                                 child: Text(
@@ -75,7 +73,6 @@ class _HomeState extends State<Home> {
                               ),
                             ],
                           ),
-                          // Configurações
                           GestureDetector(
                             child: Icon(
                               Icons.settings,
@@ -90,19 +87,27 @@ class _HomeState extends State<Home> {
                         ],
                       ),
                     ),
-                    // Receitas Favoritadas
                     Expanded(
                       child: Observer(
                         builder: (context) {
+                          if (userStore.favoriteRecipes.isEmpty) {
+                            return Center(
+                              child: Text(
+                                'Suas receitas favoritas aparecerão aqui!',
+                                style: TextStyle(
+                                  color: darkGreyColor,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            );
+                          }
+
                           return GridView.builder(
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
                               crossAxisSpacing: 8,
                               mainAxisSpacing: 8,
-                              childAspectRatio: MediaQuery.of(context)
-                                      .size
-                                      .width /
+                              childAspectRatio: MediaQuery.of(context).size.width /
                                   (MediaQuery.of(context).size.height / 1.8),
                             ),
                             itemCount: userStore.favoriteRecipes.length,
@@ -112,21 +117,30 @@ class _HomeState extends State<Home> {
                               return FutureBuilder<Map<String, dynamic>?>(
                                 future: userStore.getRecipeById(recipeId),
                                 builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return CircularProgressIndicator();
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return const Center(child: CircularProgressIndicator());
                                   }
                                   if (snapshot.hasError || !snapshot.hasData) {
-                                    return Text('Erro ao carregar receita');
+                                    return const Text('Erro ao carregar a receita.');
                                   }
 
                                   final recipe = snapshot.data!;
 
                                   return RecipeCardWidget(
                                     title: recipe['title'],
-                                    ingredients: recipe['ingredients'],
+                                    ingredients: List<String>.from(recipe['ingredients']),
                                     onViewRecipe: () {
-                                      // Implementar navegação para a receita detalhada
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => RecipeDetails(
+                                            title: recipe['title'],
+                                            items: List<String>.from(recipe['ingredients']),
+                                            servings: recipe['servings'],
+                                            prepare: List<String>.from(recipe['prepare']),
+                                          ),
+                                        ),
+                                      );
                                     },
                                   );
                                 },
@@ -141,7 +155,6 @@ class _HomeState extends State<Home> {
               ],
             ),
           ),
-          // Navbar
           const Positioned(
             bottom: 32,
             left: 32,

@@ -81,6 +81,15 @@ abstract class _UserStoreBase with Store {
   }
 
   @action
+  Future<void> toggleFavoriteRecipe(String recipeId) async {
+    if (favoriteRecipes.contains(recipeId)) {
+      await removeFavoriteRecipe(recipeId);
+    } else {
+      await addFavoriteRecipe(recipeId);
+    }
+  }
+
+  @action
   Future<Map<String, dynamic>?> getRecipeById(String recipeId) async {
     final recipeRef = _recipesRef.child(recipeId);
     final snapshot = await recipeRef.get();
