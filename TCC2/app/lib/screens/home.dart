@@ -23,7 +23,9 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     getUsername();
-    userStore.loadFavoriteRecipes();
+    userStore.loadFavoriteRecipes().then((_) {
+      setState(() {});
+    });
   }
 
   getUsername() async {
@@ -103,11 +105,14 @@ class _HomeState extends State<Home> {
                           }
 
                           return GridView.builder(
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
                               crossAxisSpacing: 8,
                               mainAxisSpacing: 8,
-                              childAspectRatio: MediaQuery.of(context).size.width /
+                              childAspectRatio: MediaQuery.of(context)
+                                      .size
+                                      .width /
                                   (MediaQuery.of(context).size.height / 1.8),
                             ),
                             itemCount: userStore.favoriteRecipes.length,
@@ -117,27 +122,33 @@ class _HomeState extends State<Home> {
                               return FutureBuilder<Map<String, dynamic>?>(
                                 future: userStore.getRecipeById(recipeId),
                                 builder: (context, snapshot) {
-                                  if (snapshot.connectionState == ConnectionState.waiting) {
-                                    return const Center(child: CircularProgressIndicator());
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
                                   }
                                   if (snapshot.hasError || !snapshot.hasData) {
-                                    return const Text('Erro ao carregar a receita.');
+                                    return const Text(
+                                        'Erro ao carregar a receita.');
                                   }
 
                                   final recipe = snapshot.data!;
 
                                   return RecipeCardWidget(
                                     title: recipe['title'],
-                                    ingredients: List<String>.from(recipe['ingredients']),
+                                    ingredients: List<String>.from(
+                                        recipe['ingredients']),
                                     onViewRecipe: () {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => RecipeDetails(
                                             title: recipe['title'],
-                                            items: List<String>.from(recipe['ingredients']),
+                                            items: List<String>.from(
+                                                recipe['ingredients']),
                                             servings: recipe['servings'],
-                                            prepare: List<String>.from(recipe['prepare']),
+                                            prepare: List<String>.from(
+                                                recipe['prepare']),
                                           ),
                                         ),
                                       );
