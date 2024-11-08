@@ -73,7 +73,7 @@ def calculate_similarity(mapped_items_manual):
     tfidf_matrix = tfidf_vectorizer.fit_transform([nota_ingredients_str] + receitas_ingredients_str.tolist())
 
     # Exibir o vetor da nota
-    print("Vetor da Nota:", tfidf_matrix[0].toarray()[0])
+    print("Vetor da Nota:", tfidf_matrix[0].toarray()[0],flush=True)
 
     cosine_similarities = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
     top_3_indices = cosine_similarities.argsort()[-3:][::-1]
@@ -81,7 +81,7 @@ def calculate_similarity(mapped_items_manual):
 
     # Exibir vetores das receitas que deram o melhor match (top 3)
     for idx in top_3_indices:
-        print(f"Vetor da Receita {idx}:", tfidf_matrix[idx + 1].toarray()[0])
+        print(f"Vetor da Receita {idx}:", tfidf_matrix[idx + 1].toarray()[0], flush=True)
 
     if top_3_scores[0] < 0.1:
         return {'message': 'Nenhuma receita relevante encontrada', 'scores': top_3_scores.tolist()}
@@ -114,7 +114,7 @@ def process_note():
     mapped_items_manual = map_items_to_ingredients(cleaned_items, ingredients_list)
 
     top_3_recipes = calculate_similarity(mapped_items_manual)
-
+    print("TESTANDO...", flush=True)
     if 'message' in top_3_recipes:
         return jsonify(top_3_recipes), 200
 
