@@ -87,6 +87,15 @@ mixin _$UserStore on _UserStoreBase, Store {
     });
   }
 
+  late final _$addFavoriteRecipeAsyncAction =
+      AsyncAction('_UserStoreBase.addFavoriteRecipe', context: context);
+
+  @override
+  Future<bool> addFavoriteRecipe(String recipeId) {
+    return _$addFavoriteRecipeAsyncAction
+        .run(() => super.addFavoriteRecipe(recipeId));
+  }
+
   late final _$loadFavoriteRecipesAsyncAction =
       AsyncAction('_UserStoreBase.loadFavoriteRecipes', context: context);
 
@@ -96,15 +105,6 @@ mixin _$UserStore on _UserStoreBase, Store {
         .run(() => super.loadFavoriteRecipes());
   }
 
-  late final _$addFavoriteRecipeAsyncAction =
-      AsyncAction('_UserStoreBase.addFavoriteRecipe', context: context);
-
-  @override
-  Future<void> addFavoriteRecipe(String recipeId) {
-    return _$addFavoriteRecipeAsyncAction
-        .run(() => super.addFavoriteRecipe(recipeId));
-  }
-
   late final _$removeFavoriteRecipeAsyncAction =
       AsyncAction('_UserStoreBase.removeFavoriteRecipe', context: context);
 
@@ -112,6 +112,15 @@ mixin _$UserStore on _UserStoreBase, Store {
   Future<void> removeFavoriteRecipe(String recipeId) {
     return _$removeFavoriteRecipeAsyncAction
         .run(() => super.removeFavoriteRecipe(recipeId));
+  }
+
+  late final _$toggleFavoriteRecipeAsyncAction =
+      AsyncAction('_UserStoreBase.toggleFavoriteRecipe', context: context);
+
+  @override
+  Future<void> toggleFavoriteRecipe(String recipeId) {
+    return _$toggleFavoriteRecipeAsyncAction
+        .run(() => super.toggleFavoriteRecipe(recipeId));
   }
 
   late final _$getRecipeByIdAsyncAction =
