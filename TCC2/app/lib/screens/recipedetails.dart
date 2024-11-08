@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:app/const.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import 'package:flutter/services.dart';
+import 'package:app/const.dart';
 import '../../secrets/config.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+
+
 class Recipe {
   final String title;
   final List<String> items;
@@ -40,11 +43,13 @@ class RecipeDetails extends StatefulWidget {
 
 class _RecipeDetailsState extends State<RecipeDetails> {
   YoutubePlayerController? _youtubePlayerController;
+  bool _isFavorited = false;
 
   @override
   void initState() {
     super.initState();
     _loadYoutubeVideo();
+    _loadFavoriteStatus();
   }
 
   Future<void> _loadYoutubeVideo() async {
@@ -75,6 +80,21 @@ class _RecipeDetailsState extends State<RecipeDetails> {
   });;
       setState(() {}); // Atualiza a UI para mostrar o player
     }
+  }
+
+  Future<void> _loadFavoriteStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isFavorited = prefs.getBool(widget.title) ?? false;
+    });
+  }
+
+  Future<void> _toggleFavorite() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isFavorited = !_isFavorited;
+      prefs.setBool(widget.title, _isFavorited);
+    });
   }
 
   Future<String?> fetchYoutubeVideoId(String query) async {
@@ -139,14 +159,12 @@ class _RecipeDetailsState extends State<RecipeDetails> {
                       ),
                     ),
                     GestureDetector(
+                      onTap: _toggleFavorite,
                       child: Icon(
-                        Icons.bookmark_add_outlined,
+                        _isFavorited ? Icons.bookmark : Icons.bookmark_add_outlined,
                         size: 32,
                         color: darkGreyColor,
                       ),
-                      onTap: () {
-                        // Lógica para salvar a receita
-                      },
                     ),
                   ],
                 ),
