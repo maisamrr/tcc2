@@ -11,20 +11,17 @@ app = Flask(__name__)
 cached_ingredients_list = None
 def ordenar_instrucoes(instrucoes):
     def extrair_numero(instrucao):
-        match = re.match(r'^(\d+)\.', instrucao)  # Procura por um número seguido de ponto
-        return int(match.group(1)) if match else float('inf')  # Retorna o número ou um valor alto se não encontrar
+        match = re.match(r'^(\d+)\.', instrucao)
+        return int(match.group(1)) if match else float('inf')
 
-    # Ordenar as instruções com base no número extraído
     instrucoes_ordenadas = sorted(instrucoes, key=extrair_numero)
     return instrucoes_ordenadas
 
 def levenshtein_distance(s1, s2):
     if len(s1) < len(s2):
         return levenshtein_distance(s2, s1)
-
     if len(s2) == 0:
         return len(s1)
-
     previous_row = range(len(s2) + 1)
     for i, c1 in enumerate(s1):
         current_row = [i + 1]
@@ -34,7 +31,6 @@ def levenshtein_distance(s1, s2):
             substitutions = previous_row[j] + (c1 != c2)
             current_row.append(min(insertions, deletions, substitutions))
         previous_row = current_row
-    
     return previous_row[-1]
 
 def find_best_match_manual(item, ingredients):
@@ -50,19 +46,13 @@ def load_ingredients():
     return cached_ingredients_list
 
 def get_correct_ingredients(recipe_name):
-    # Carregar o CSV que contém os ingredientes corretos
     receitas_porcoes_df = pd.read_csv('data/todas_receitas_porcoeslimpas.csv')
-
-    # Procurar a receita pelo nome e pegar os ingredientes corretos
     receita = receitas_porcoes_df[receitas_porcoes_df['Receita'].str.lower() == recipe_name.lower()]
-    
     if not receita.empty:
         ingredientes_str = receita.iloc[0]['Ingredientes']
-        # Retornar a lista de ingredientes
-        return eval(ingredientes_str)  # Transformar string de volta em lista
+        return eval(ingredientes_str)
     else:
         return []
-
 
 def clean_extracted_data(processed_items):
     df = pd.DataFrame(processed_items)
@@ -76,20 +66,22 @@ def calculate_similarity(mapped_items_manual):
     recipes_df = pd.read_csv('data/recipes_levenshtein.csv')
     receitas_ingredients = recipes_df['Ingredientes']
 
-    # Preparar as strings de ingredientes para o cálculo de TF-IDF
     nota_ingredients_str = " ".join(mapped_items_manual)
     receitas_ingredients_str = receitas_ingredients.apply(lambda x: " ".join(eval(x)))
 
-    # Criar o vetorizador TF-IDF e calcular a similaridade
     tfidf_vectorizer = TfidfVectorizer()
     tfidf_matrix = tfidf_vectorizer.fit_transform([nota_ingredients_str] + receitas_ingredients_str.tolist())
 
-    # Calcular a similaridade coseno entre a nota fiscal e as receitas
-    cosine_similarities = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
+    # Exibir o vetor da nota
+    print("Vetor da Nota:", tfidf_matrix[0].toarray()[0])
 
-    # Pegar os índices das 3 receitas com maior similaridade
+    cosine_similarities = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
     top_3_indices = cosine_similarities.argsort()[-3:][::-1]
     top_3_scores = cosine_similarities[top_3_indices]
+
+    # Exibir vetores das receitas que deram o melhor match (top 3)
+    for idx in top_3_indices:
+        print(f"Vetor da Receita {idx}:", tfidf_matrix[idx + 1].toarray()[0])
 
     if top_3_scores[0] < 0.1:
         return {'message': 'Nenhuma receita relevante encontrada', 'scores': top_3_scores.tolist()}
@@ -98,7 +90,6 @@ def calculate_similarity(mapped_items_manual):
     top_3_recipes.loc[:, 'similarity_score'] = top_3_scores
 
     return top_3_recipes
-
 
 @app.route('/')
 def home():
@@ -127,26 +118,19 @@ def process_note():
     if 'message' in top_3_recipes:
         return jsonify(top_3_recipes), 200
 
-    # Construir a resposta com as 3 melhores receitas
     recipes_response = []
     for _, row in top_3_recipes.iterrows():
-        # Obter os ingredientes corretos da receita usando o nome da receita
         ingredientes_list = get_correct_ingredients(row['Receita'])
-
         instrucoes_list = eval(row['Instruções'])
-
-        # Ordenar as instruções
         instrucoes_ordenadas = ordenar_instrucoes(instrucoes_list)
-
-        # Adicionar cada receita ao resultado
         recipes_response.append({
             'Receita': row['Receita'],
             'Porções': int(row['Porções']),
             'Ingredientes': list(ingredientes_list),
-            'Instruções': instrucoes_ordenadas,  # Instruções ordenadas
+            'Instruções': instrucoes_ordenadas,
             'similarity_score': float(row['similarity_score']),
         })
-    
+
     return jsonify(recipes_response), 200
 
 if __name__ == '__main__':
