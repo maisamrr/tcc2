@@ -46,27 +46,40 @@ abstract class _UserStoreBase with Store {
   }
 
   @action
+  Future<bool> addFavoriteRecipe(String recipeId) async {
+    final User? currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      final userFavoritesRef = _userRef.child(currentUser.uid).child('favorites');
+      
+      // verificar ou criar o 'favorites'
+      final snapshot = await userFavoritesRef.get();
+      if (!snapshot.exists) {
+        await userFavoritesRef.child(recipeId).set(true);
+      } else {
+        await userFavoritesRef.child(recipeId).set(true);
+      }
+      
+      favoriteRecipes.add(recipeId);
+      return true;
+    }
+    return false;
+  }
+
+  @action
   Future<void> loadFavoriteRecipes() async {
     final User? currentUser = _auth.currentUser;
     if (currentUser != null) {
       final userFavoritesRef = _userRef.child(currentUser.uid).child('favorites');
       final snapshot = await userFavoritesRef.get();
 
+      // verificar favorites antes de carregar
       if (snapshot.exists) {
         final favoritesMap = Map<String, dynamic>.from(snapshot.value as Map);
         favoriteRecipes.clear();
         favoriteRecipes.addAll(favoritesMap.keys);
+      } else {
+        favoriteRecipes.clear();
       }
-    }
-  }
-
-  @action
-  Future<void> addFavoriteRecipe(String recipeId) async {
-    final User? currentUser = _auth.currentUser;
-    if (currentUser != null) {
-      final userFavoritesRef = _userRef.child(currentUser.uid).child('favorites').child(recipeId);
-      await userFavoritesRef.set(true);
-      favoriteRecipes.add(recipeId);
     }
   }
 
@@ -77,6 +90,15 @@ abstract class _UserStoreBase with Store {
       final userFavoritesRef = _userRef.child(currentUser.uid).child('favorites').child(recipeId);
       await userFavoritesRef.remove();
       favoriteRecipes.remove(recipeId);
+    }
+  }
+
+  @action
+  Future<void> toggleFavoriteRecipe(String recipeId) async {
+    if (favoriteRecipes.contains(recipeId)) {
+      await removeFavoriteRecipe(recipeId);
+    } else {
+      await addFavoriteRecipe(recipeId);
     }
   }
 

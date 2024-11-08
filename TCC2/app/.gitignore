@@ -43,4 +43,10 @@ app.*.map.json
 /android/app/release
 
 # Firebase service keys
-secrets/*.json
+scripts/etc/secrets/*.json
+scripts/etc/secrets/*.dart
+
+# Ignore a pasta secrets e todos os seus conteúdos
+/TCC2/app/lib/secrets/
+/TCC2/app/lib/secrets/*.dart
+/TCC2/app/secrets/

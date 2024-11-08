@@ -118,6 +118,8 @@ redisgraph==2.4.4
 regex==2024.4.28
 requests==2.31.0
 rsa==4.9
+scikit-learn==1.5.2
+scipy==1.14.1
 selenium==4.19.0
 six==1.16.0
 smart-open==6.4.0
@@ -131,6 +133,7 @@ srsly==2.4.8
 stack-data==0.6.3
 starlette==0.27.0
 thinc==8.2.3
+threadpoolctl==3.5.0
 tornado==6.4
 tqdm==4.66.2
 traitlets==5.14.3
