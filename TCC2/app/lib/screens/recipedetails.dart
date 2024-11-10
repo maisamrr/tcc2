@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:app/const.dart';
-import 'package:app/secrets/config.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,7 +12,6 @@ Future<String> fetchGoogleApiKey() async {
   await remoteConfig.fetchAndActivate();
   return remoteConfig.getString('GOOGLE_API_KEY');
 }
-
 
 class Recipe {
   final String title;

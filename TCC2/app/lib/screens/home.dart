@@ -7,7 +7,6 @@ import 'package:app/widgets/recipecardwidget.dart';
 import 'package:app/widgets/bottomnavbar.dart';
 import 'package:app/screens/recipedetails.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -25,10 +24,6 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     topRecipes = fetchTopRecipes();
-
-    // Chamar os testes de Firebase aqui
-    testFirebaseAuth();
-    testFirebaseDatabase();
   }
 
   getUsername() async {
@@ -40,41 +35,18 @@ class _HomeState extends State<Home> {
     });
   }
 
-  Future<void> testFirebaseAuth() async {
-    try {
-      UserCredential userCredential = await FirebaseAuth.instance.signInAnonymously();
-      print("****** Login anônimo bem-sucedido: ${userCredential.user?.uid}");
-    } catch (e) {
-      print("****** Erro ao conectar ao Firebase Auth: $e");
-    }
-  }
-
-  Future<void> testFirebaseDatabase() async {
-    try {
-      final ref = FirebaseDatabase.instance.ref("recipes/-O5oE1Fcwv9WbJQYywdQ");
-      final snapshot = await ref.get();
-      if (snapshot.exists) {
-        print("****** Dados carregados do Firebase Database: ${snapshot.value}");
-      } else {
-        print("****** Nenhum dado encontrado no caminho especificado.");
-      }
-    } catch (e) {
-      print("****** Erro ao conectar ao Firebase Database: $e");
-    }
-  }
-
   Future<List<Map<String, dynamic>>> fetchTopRecipes() async {
     final ref = FirebaseDatabase.instance.ref('recipes');
-    print("****** Tentando acessar o Firebase Database...");
+    print('****** Tentando acessar o Firebase Database...');
     final snapshot = await ref.limitToFirst(4).get();
 
     if (snapshot.exists) {
-      print("****** Dados encontrados: ${snapshot.value}");
+      print('****** Dados encontrados: ${snapshot.value}');
 
       return snapshot.children.map((child) {
-        // Garantindo que o dado é realmente um Map antes de fazer o cast
+        // Garantindo que o dado é um Map antes de fazer o cast
         if (child.value is! Map) {
-          print("****** O valor de 'child' não é um Map. Valor: ${child.value}");
+          print('****** O valor de child não é um Map. Valor: ${child.value}');
           return <String, dynamic>{
             'title': 'Dado inválido',
             'ingredients': [],
@@ -85,7 +57,7 @@ class _HomeState extends State<Home> {
 
         final data = child.value as Map<dynamic, dynamic>;
 
-        // Processando os campos de forma segura
+        // Processando os campos
         final title = data['title'] as String? ?? 'Título Desconhecido';
         
         List<String> ingredients = [];
@@ -94,7 +66,7 @@ class _HomeState extends State<Home> {
               .map((item) => item.toString().replaceAll(RegExp(r"[{}']"), '').trim())
               .toList();
         } else {
-          print("****** Erro: 'ingredients' não é uma lista");
+          print('****** Erro: ingredients não é uma lista');
         }
 
         List<String> instructions = [];
@@ -103,7 +75,7 @@ class _HomeState extends State<Home> {
               .map((item) => item.toString().replaceAll(RegExp(r"[{}']"), '').trim())
               .toList();
         } else {
-          print("****** Erro: 'instructions' não é uma lista");
+          print('****** Erro: instructions não é uma lista');
         }
 
         final portions = data['portions']?.toString() ?? 'Porções desconhecidas';
@@ -120,8 +92,6 @@ class _HomeState extends State<Home> {
       return [];
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -181,14 +151,14 @@ class _HomeState extends State<Home> {
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return Center(child: CircularProgressIndicator());
+                            return const Center(child: CircularProgressIndicator());
                           } else if (snapshot.hasError) {
                             print('Erro ao carregar receitas: ${snapshot.error}');
-                            return Center(
+                            return const Center(
                                 child: Text('Erro ao carregar receitas.'));
                           } else if (!snapshot.hasData ||
                               snapshot.data!.isEmpty) {
-                            return Center(
+                            return const Center(
                               child: Text(
                                 'Nenhuma receita encontrada!',
                                 style: TextStyle(fontSize: 16),
