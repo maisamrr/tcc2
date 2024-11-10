@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart'; 
+import 'package:app/store/user_store.dart';
 
 Future<String> fetchGoogleApiKey() async {
   final remoteConfig = FirebaseRemoteConfig.instance;
@@ -49,10 +51,12 @@ class RecipeDetails extends StatefulWidget {
 class _RecipeDetailsState extends State<RecipeDetails> {
   YoutubePlayerController? _youtubePlayerController;
   bool _isFavorited = false;
+  late UserStore userStore;
 
   @override
   void initState() {
     super.initState();
+    userStore = Provider.of<UserStore>(context, listen: false);
     _loadYoutubeVideo();
     _loadFavoriteStatus();
   }
@@ -81,25 +85,23 @@ class _RecipeDetailsState extends State<RecipeDetails> {
   }
 
   Future<void> _loadFavoriteStatus() async {
-    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _isFavorited = prefs.getBool(widget.title) ?? false;
+      _isFavorited = userStore.favoriteRecipes.contains(widget.title);
     });
   }
 
   Future<void> _toggleFavorite() async {
-    final prefs = await SharedPreferences.getInstance();
+    await userStore.toggleFavoriteRecipe(widget.title);
+    
     setState(() {
-      _isFavorited = !_isFavorited;
-      prefs.setBool(widget.title, _isFavorited);
+      _isFavorited = userStore.favoriteRecipes.contains(widget.title);
     });
 
-    // snackbar de favoritar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_isFavorited
-            ? 'Receita adicionada aos favoritos!'
-            : 'Receita removida dos favoritos!'),
+        content: Text(
+          _isFavorited ? 'Receita adicionada aos favoritos!' : 'Receita removida dos favoritos!',
+        ),
         duration: Duration(seconds: 2),
       ),
     );

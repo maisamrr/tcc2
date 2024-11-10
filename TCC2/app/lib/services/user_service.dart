@@ -13,9 +13,6 @@ class UserService {
     required String email,
     required String password,
   }) async {
-    final newUserRef = _userRef.push();
-    final String? userId = newUserRef.key;
-
     try {
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
@@ -23,12 +20,16 @@ class UserService {
         password: password,
       );
 
+      String? uid = userCredential.user?.uid;
+
       await userCredential.user?.updateDisplayName(name);
 
-      await newUserRef.set({
+      final userRef = _userRef.child(uid!!);
+
+      await userRef.set({
         'name': name,
         'email': email,
-        'firebaseUserId': userCredential.user?.uid,
+        'firebaseUserId': uid,
       });
     } catch (e) {
       print('Erro ao salvar o usuário: $e');
@@ -47,7 +48,7 @@ class UserService {
       );
     } catch (e) {
       print('Erro ao fazer login: $e');
-      rethrow; 
+      rethrow;
     }
   }
 
@@ -160,7 +161,6 @@ class UserService {
 
       if (favoriteRecipesMap == null) return [];
 
-      // converter o mapa para uma lista de receitas
       List<Map<String, dynamic>> favoriteRecipes = [];
       favoriteRecipesMap.forEach((key, value) {
         favoriteRecipes.add({

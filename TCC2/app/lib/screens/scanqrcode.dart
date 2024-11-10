@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:app/screens/matchedrecipes.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -24,6 +25,8 @@ class _ScanQrCodeState extends State<ScanQrCode> {
   String? initialUrl;
   bool dataExtracted = false;
   String? receiptId;
+  final DatabaseReference _userRef =
+      FirebaseDatabase.instance.ref().child('users/-O5nz-t01Yv-7sl3e6IK');
 
   @override
   void reassemble() {
@@ -80,6 +83,10 @@ class _ScanQrCodeState extends State<ScanQrCode> {
                   await Future.delayed(const Duration(seconds: 10));
                   await _extractDataAndSendToBackend();
                 }
+                ;
+                _userRef.update({
+                  'receitasFavoritas': ["receitaID1", "receitaID2"]
+                });
               },
             ),
           if (isProcessing)
