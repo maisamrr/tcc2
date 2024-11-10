@@ -5,7 +5,30 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:http/http.dart' as http;
+
+Future<String> fetchGoogleApiKey() async {
+  final remoteConfig = FirebaseRemoteConfig.instance;
+  await remoteConfig.fetchAndActivate();
+  return remoteConfig.getString('GOOGLE_API_KEY');
+}
+
+
+class Recipe {
+  final String title;
+  final List<String> items;
+  final String servings;
+  final List<String> prepare;
+
+  Recipe({
+    required this.title,
+    required this.items,
+    required this.servings,
+    required this.prepare,
+  });
+}
+
 
 class RecipeDetails extends StatefulWidget {
   final String title;
@@ -85,8 +108,11 @@ class _RecipeDetailsState extends State<RecipeDetails> {
   }
 
   Future<String?> fetchYoutubeVideoId(String query) async {
+    final googleApiKey = await fetchGoogleApiKey();
+
     final url = Uri.parse(
-        'https://www.googleapis.com/youtube/v3/search?part=snippet&q=$query&type=video&maxResults=1&key=$googleApiKey');
+      'https://www.googleapis.com/youtube/v3/search?part=snippet&q=$query&type=video&maxResults=1&key=$googleApiKey',
+    );
 
     final response = await http.get(url);
 
