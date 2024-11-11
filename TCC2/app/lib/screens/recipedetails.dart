@@ -13,7 +13,6 @@ Future<String> fetchGoogleApiKey() async {
   return remoteConfig.getString('GOOGLE_API_KEY');
 }
 
-
 class Recipe {
   final String title;
   final List<String> items;

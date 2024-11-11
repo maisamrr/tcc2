@@ -29,6 +29,7 @@ dependencies:
   percent_indicator: ^4.2.3
   flutter_launcher_icons: ^0.11.0
   shared_preferences: ^2.0.15
+  firebase_remote_config: ^5.1.4
 dependency_overrides:
   camera_android_camerax: 0.6.7 
   video_player_android: 2.6.0
