@@ -65,28 +65,33 @@ def map_items_to_ingredients(items_list, ingredients_list):
     return [find_best_match_manual(item, ingredients_list) for item in items_list]
 
 def calculate_similarity(mapped_items_manual):
+    # Carregar vocabulário de ingredientes a partir do arquivo
+    all_ingredients_df = pd.read_csv('data/all_ingredients.csv')
+    vocabulario_ingredientes = all_ingredients_df['Ingrediente'].str.lower().tolist()
+
+    # Configurar o TfidfVectorizer com o vocabulário fixo
+    tfidf_vectorizer = TfidfVectorizer(vocabulary=vocabulario_ingredientes, max_df=1.0, min_df=1, stop_words=None)
+
+
+    # Preparar as strings de ingredientes das receitas
     recipes_df = pd.read_csv('data/recipes_levenshtein.csv')
-    receitas_ingredients = recipes_df['Ingredientes']
+    receitas_ingredients_str = recipes_df['Ingredientes'].apply(lambda x: " ".join(eval(x)))
 
-    nota_ingredients_str = " ".join(mapped_items_manual)
-    receitas_ingredients_str = receitas_ingredients.apply(lambda x: " ".join(eval(x)))
+    # Calcular o TF-IDF das receitas
+    tfidf_receitas = tfidf_vectorizer.fit_transform(receitas_ingredients_str)
 
-    tfidf_vectorizer = TfidfVectorizer()
-    tfidf_matrix = tfidf_vectorizer.fit_transform([nota_ingredients_str] + receitas_ingredients_str.tolist())
+    # Calcular o TF-IDF da nota fiscal
+    nota_ingredients_str = " ".join(mapped_items_manual)  # mapeie os ingredientes da nota fiscal
+    tfidf_nota = tfidf_vectorizer.transform([nota_ingredients_str])
 
-    # Exibir o vetor da nota
-    np.set_printoptions(precision=2, suppress=True, threshold=np.inf)  # Define 2 casas decimais e suprime notação científica
+    # Calcular a similaridade entre o vetor da nota e os vetores das receitas
+    cosine_similarities = cosine_similarity(tfidf_nota, tfidf_receitas).flatten()
+    top_3_indices = cosine_similarities.argsort()[-3:][::-1]  # Seleciona os 3 melhores
 
-    print("Vetor da Nota:", [f"{x:.2f}" for x in tfidf_matrix[0].toarray()[0]], flush=True)
-
-    cosine_similarities = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
-    top_3_indices = cosine_similarities.argsort()[-3:][::-1]
+    # Opcional: Ver os resultados
     top_3_scores = cosine_similarities[top_3_indices]
-
-    # Exibir vetores das receitas que deram o melhor match (top 3)
-    
-    for idx in top_3_indices:
-        print(f"Vetor da Receita {idx}:", [f"{x:.2f}" for x in tfidf_matrix[idx + 1].toarray()[0]], flush=True)
+    print("Melhores índices:", top_3_indices)
+    print("Scores de similaridade:", top_3_scores)
 
     if top_3_scores[0] < 0.1:
         return {'message': 'Nenhuma receita relevante encontrada', 'scores': top_3_scores.tolist()}
