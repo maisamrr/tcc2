@@ -94,6 +94,12 @@ def calculate_similarity(mapped_items_manual):
     print("Scores de similaridade:", top_3_scores, flush=True)
     print("Número de colunas no TF-IDF:", len(tfidf_vectorizer.vocabulary_), flush=True)
 
+    print("Vetor TF-IDF da Nota Fiscal:", flush=True)
+    print(tfidf_nota.toarray()[0])
+
+    for idx in top_3_indices:
+        print(f"\nVetor TF-IDF da Receita {idx}:", flush=True)
+        print(tfidf_receitas[idx].toarray()[0])
 
     if top_3_scores[0] < 0.1:
         return {'message': 'Nenhuma receita relevante encontrada', 'scores': top_3_scores.tolist()}
