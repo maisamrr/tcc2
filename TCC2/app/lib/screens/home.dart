@@ -18,12 +18,13 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final userStore = UserStore();
   String? username;
-  Future<List<Map<String, dynamic>>>? topRecipes;
+  Future<List<Map<String, dynamic>>>? favoriteRecipes;
 
   @override
   void initState() {
     super.initState();
-    topRecipes = fetchTopRecipes();
+    getUsername(); // Carrega o nome do usuário
+    favoriteRecipes = fetchFavoriteRecipes(); // Carrega as receitas favoritas
   }
 
   getUsername() async {
@@ -31,69 +32,34 @@ class _HomeState extends State<Home> {
     var userData = await userService.getUserData();
 
     setState(() {
-      username = userData!.displayName!;
+      username = userData?.displayName ?? 'Usuário';
     });
   }
 
-  Future<List<Map<String, dynamic>>> fetchTopRecipes() async {
-    final ref = FirebaseDatabase.instance.ref('recipes');
-    print('****** Tentando acessar o Firebase Database...');
-    final snapshot = await ref.limitToFirst(4).get();
+  Future<List<Map<String, dynamic>>> fetchFavoriteRecipes() async {
+    UserService userService = UserService();
+    List<Map<String, dynamic>> favoritesList = await userService.getFavoriteRecipes();
 
-    if (snapshot.exists) {
-      print('****** Dados encontrados: ${snapshot.value}');
-
-      return snapshot.children.map((child) {
-        // Garantindo que o dado é um Map antes de fazer o cast
-        if (child.value is! Map) {
-          print('****** O valor de child não é um Map. Valor: ${child.value}');
-          return <String, dynamic>{
-            'title': 'Dado inválido',
-            'ingredients': [],
-            'instructions': [],
-            'portions': 'Desconhecido'
-          };
-        }
-
-        final data = child.value as Map<dynamic, dynamic>;
-
-        // Processando os campos
-        final title = data['title'] as String? ?? 'Título Desconhecido';
-        
-        List<String> ingredients = [];
-        if (data['ingredients'] is List) {
-          ingredients = (data['ingredients'] as List)
-              .map((item) => item.toString().replaceAll(RegExp(r"[{}']"), '').trim())
-              .toList();
-        } else {
-          print('****** Erro: ingredients não é uma lista');
-        }
-
-        List<String> instructions = [];
-        if (data['instructions'] is List) {
-          instructions = (data['instructions'] as List)
-              .map((item) => item.toString().replaceAll(RegExp(r"[{}']"), '').trim())
-              .toList();
-        } else {
-          print('****** Erro: instructions não é uma lista');
-        }
-
-        final portions = data['portions']?.toString() ?? 'Porções desconhecidas';
-
-        return {
-          'title': title,
-          'ingredients': ingredients,
-          'instructions': instructions,
-          'portions': portions,
-        };
-      }).toList();
-    } else {
-      print('****** Nenhum dado encontrado.');
+    if (favoritesList.isEmpty) {
+      debugPrint('****** Nenhuma receita favorita encontrada.');
       return [];
     }
+    final recipesRef = FirebaseDatabase.instance.ref('recipes');
+    List<Map<String, dynamic>> favoriteRecipes = [];
+
+    for (var favorite in favoritesList) {
+        favoriteRecipes.add({
+          'title': favorite['title'] ?? 'Título Desconhecido',
+          'ingredients': List<String>.from(favorite['ingredients'] ?? []),
+          'instructions': List<String>.from(favorite['instructions'] ?? []),
+          'portions': favorite['portions']?.toString() ?? 'Porções desconhecidas',
+        });
+    }
+
+    return favoriteRecipes;
   }
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundIdColor,
@@ -147,34 +113,31 @@ class _HomeState extends State<Home> {
                     ),
                     Expanded(
                       child: FutureBuilder<List<Map<String, dynamic>>>(
-                        future: topRecipes,
+                        future: favoriteRecipes,
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            debugPrint('MyApp: favoriteRecipes - $favoriteRecipes');
                             return const Center(child: CircularProgressIndicator());
                           } else if (snapshot.hasError) {
-                            print('Erro ao carregar receitas: ${snapshot.error}');
+                            debugPrint('Erro ao carregar receitas: ${snapshot.error}');
                             return const Center(
                                 child: Text('Erro ao carregar receitas.'));
-                          } else if (!snapshot.hasData ||
-                              snapshot.data!.isEmpty) {
+                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            debugPrint("MyApp: NO DATA - $favoriteRecipes");
                             return const Center(
                               child: Text(
-                                'Nenhuma receita encontrada!',
+                                'Nenhuma receita favorita encontrada!',
                                 style: TextStyle(fontSize: 16),
                               ),
                             );
                           } else {
                             final recipes = snapshot.data!;
                             return GridView.builder(
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
                                 crossAxisSpacing: 8,
                                 mainAxisSpacing: 8,
-                                childAspectRatio: MediaQuery.of(context)
-                                        .size
-                                        .width /
+                                childAspectRatio: MediaQuery.of(context).size.width /
                                     (MediaQuery.of(context).size.height / 1.8),
                               ),
                               itemCount: recipes.length,
@@ -183,19 +146,16 @@ class _HomeState extends State<Home> {
 
                                 return RecipeCardWidget(
                                   title: recipe['title'],
-                                  ingredients:
-                                      List<String>.from(recipe['ingredients']),
+                                  ingredients: recipe['ingredients'],
                                   onViewRecipe: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => RecipeDetails(
                                           title: recipe['title'],
-                                          items: List<String>.from(
-                                              recipe['ingredients']),
+                                          items: recipe['ingredients'],
                                           servings: recipe['portions'],
-                                          prepare: List<String>.from(
-                                              recipe['instructions']),
+                                          prepare: recipe['instructions'],
                                         ),
                                       ),
                                     );

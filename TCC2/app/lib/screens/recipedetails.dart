@@ -8,6 +8,7 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart'; 
 import 'package:app/store/user_store.dart';
+import 'package:app/services/user_service.dart';
 
 Future<String> fetchGoogleApiKey() async {
   final remoteConfig = FirebaseRemoteConfig.instance;
@@ -52,13 +53,16 @@ class _RecipeDetailsState extends State<RecipeDetails> {
   YoutubePlayerController? _youtubePlayerController;
   bool _isFavorited = false;
   late UserStore userStore;
+  final UserService userService = UserService();
 
+  @override
   @override
   void initState() {
     super.initState();
     userStore = Provider.of<UserStore>(context, listen: false);
     _loadYoutubeVideo();
-    _loadFavoriteStatus();
+
+    userStore.loadFavoriteRecipes().then((_) => _loadFavoriteStatus());
   }
 
   Future<void> _loadYoutubeVideo() async {
@@ -88,6 +92,8 @@ class _RecipeDetailsState extends State<RecipeDetails> {
     setState(() {
       _isFavorited = userStore.favoriteRecipes.contains(widget.title);
     });
+
+    print("teste");
   }
 
   Future<void> _toggleFavorite() async {

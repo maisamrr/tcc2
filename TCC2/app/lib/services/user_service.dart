@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
 
 class UserService {
   final DatabaseReference _rootRef = FirebaseDatabase.instance
@@ -7,6 +8,42 @@ class UserService {
   late final DatabaseReference _userRef = _rootRef.child('users');
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // Função auxiliar para formatar o nome da receita
+  String formatRecipeTitle(String title) {
+    // Remove acentos e caracteres especiais
+    final accentsMap = {
+      'á': 'a',
+      'à': 'a',
+      'ã': 'a',
+      'â': 'a',
+      'ä': 'a',
+      'é': 'e',
+      'è': 'e',
+      'ê': 'e',
+      'ë': 'e',
+      'í': 'i',
+      'ì': 'i',
+      'î': 'i',
+      'ï': 'i',
+      'ó': 'o',
+      'ò': 'o',
+      'õ': 'o',
+      'ô': 'o',
+      'ö': 'o',
+      'ú': 'u',
+      'ù': 'u',
+      'û': 'u',
+      'ü': 'u',
+      'ç': 'c',
+    };
+    accentsMap.forEach((accent, char) {
+      title = title.replaceAll(accent, char);
+    });
+
+    // Substitui espaços por underscores
+    return title.replaceAll(' ', '_');
+  }
 
   Future<void> saveUser({
     required String name,
@@ -153,24 +190,38 @@ class UserService {
 
       final String userKey = currentUser.uid;
 
+      // Recupera os IDs das receitas favoritas
       final DatabaseEvent snapshot =
           await _userRef.child(userKey).child('favorites').once();
-
       final Map<dynamic, dynamic>? favoriteRecipesMap =
           snapshot.snapshot.value as Map<dynamic, dynamic>?;
 
       if (favoriteRecipesMap == null) return [];
 
       List<Map<String, dynamic>> favoriteRecipes = [];
-      favoriteRecipesMap.forEach((key, value) {
-        favoriteRecipes.add({
-          'title': value['title'],
-          'ingredients': List<String>.from(value['ingredients']),
-          'onViewRecipe': () {
-            // rmplementar navegação para a receita aqui
-          },
-        });
-      });
+
+      for (String recipeTitle in favoriteRecipesMap.keys) {
+        // Formata o título da receita
+        String formattedTitle = formatRecipeTitle(recipeTitle);
+
+        // Buscar dados da receita no Firebase usando o nome formatado
+        final DatabaseEvent recipeSnapshot =
+            await _rootRef.child('recipes').child(formattedTitle).once();
+
+        if (recipeSnapshot.snapshot.exists) {
+          final data = recipeSnapshot.snapshot.value as Map<dynamic, dynamic>;
+
+          favoriteRecipes.add({
+            'title': data['title'] ?? 'Título Desconhecido',
+            'ingredients': List<String>.from(data['ingredients'] ?? []),
+            'instructions': List<String>.from(data['instructions'] ?? []),
+            'portions': data['portions']?.toString() ?? 'Porções desconhecidas',
+          });
+        } else {
+          print(
+              '****** Receita não encontrada no banco de dados: $formattedTitle');
+        }
+      }
 
       return favoriteRecipes;
     } catch (e) {

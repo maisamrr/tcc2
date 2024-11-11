@@ -1,14 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:mobx/mobx.dart';
+import 'package:app/services/user_service.dart';
 part 'user_store.g.dart';
+
 
 class UserStore = _UserStoreBase with _$UserStore;
 abstract class _UserStoreBase with Store {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _userRef = FirebaseDatabase.instance.ref().child('users');
   final DatabaseReference _recipesRef = FirebaseDatabase.instance.ref().child('recipes');
-
+  final UserService userService = UserService();
   @observable
   bool logado = false;
 
@@ -67,19 +69,17 @@ abstract class _UserStoreBase with Store {
 
   @action
   Future<void> loadFavoriteRecipes() async {
-    final User? currentUser = _auth.currentUser;
-    if (currentUser != null) {
-      final userFavoritesRef = _userRef.child(currentUser.uid).child('favorites');
-      final snapshot = await userFavoritesRef.get();
+    try {
+      // Obtém a lista de favoritos usando o UserService
+      final List<Map<String, dynamic>> favorites = await userService.getFavoriteRecipes();
 
-      // verificar favorites antes de carregar
-      if (snapshot.exists) {
-        final favoritesMap = Map<String, dynamic>.from(snapshot.value as Map);
-        favoriteRecipes.clear();
-        favoriteRecipes.addAll(favoritesMap.keys);
-      } else {
-        favoriteRecipes.clear();
+      // Limpa e atualiza a lista de favoritos
+      favoriteRecipes.clear();
+      for (var recipe in favorites) {
+        favoriteRecipes.add(recipe['title']);
       }
+    } catch (e) {
+      print('Erro ao carregar as receitas favoritas: $e');
     }
   }
 
