@@ -88,19 +88,23 @@ def calculate_similarity(mapped_items_manual):
     # Calcular a similaridade entre o vetor da nota e os vetores das receitas
     cosine_similarities = cosine_similarity(tfidf_nota, tfidf_receitas).flatten()
     top_3_indices = cosine_similarities.argsort()[-3:][::-1]  # Seleciona os 3 melhores
+    # Exibir ingredientes e valores TF-IDF diferentes de 0.0 para a nota fiscal
+    feature_names = tfidf_vectorizer.get_feature_names_out()
+    print("Ingredientes da Nota Fiscal com valores TF-IDF diferentes de 0.0:")
+    for i, value in enumerate(tfidf_nota.toarray()[0]):
+        if value != 0.0:
+            print(f"{feature_names[i]}: {value:.2f}")
 
-    # Opcional: Ver os resultados
-    top_3_scores = cosine_similarities[top_3_indices]
-    print("Melhores índices:", top_3_indices, flush=True)
-    print("Scores de similaridade:", top_3_scores, flush=True)
-    print("Número de colunas no TF-IDF:", len(tfidf_vectorizer.vocabulary_), flush=True)
-
-    print("Vetor TF-IDF da Nota Fiscal:", flush=True)
-    print(tfidf_nota.toarray()[0])
-
+    # Exibir ingredientes e valores TF-IDF diferentes de 0.0 para as top 3 receitas
     for idx in top_3_indices:
-        print(f"\nVetor TF-IDF da Receita {idx}:", flush=True)
-        print(tfidf_receitas[idx].toarray()[0])
+        print(f"\nIngredientes da Receita {idx} com valores TF-IDF diferentes de 0.0:")
+        for i, value in enumerate(tfidf_receitas[idx].toarray()[0]):
+            if value != 0.0:
+                print(f"{feature_names[i]}: {value:.2f}")
+
+    # Exibir scores de similaridade das top 3 receitas
+    top_3_scores = cosine_similarities[top_3_indices]
+    print("Scores de Similaridade das Top 3 Receitas:", top_3_scores)
 
     if top_3_scores[0] < 0.1:
         return {'message': 'Nenhuma receita relevante encontrada', 'scores': top_3_scores.tolist()}
