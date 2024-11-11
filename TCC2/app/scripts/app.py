@@ -65,6 +65,7 @@ def map_items_to_ingredients(items_list, ingredients_list):
     return [find_best_match_manual(item, ingredients_list) for item in items_list]
 
 def calculate_similarity(mapped_items_manual):
+    np.set_printoptions(precision=2, suppress=True, threshold=np.inf)  # Define 2 casas decimais e suprime notação científica
     # Carregar vocabulário de ingredientes a partir do arquivo
     all_ingredients_df = pd.read_csv('data/all_ingredients.csv')
     vocabulario_ingredientes = all_ingredients_df['Ingrediente'].str.lower().tolist()
