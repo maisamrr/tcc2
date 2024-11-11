@@ -72,7 +72,6 @@ def calculate_similarity(mapped_items_manual):
     # Configurar o TfidfVectorizer com o vocabulário fixo
     tfidf_vectorizer = TfidfVectorizer(vocabulary=vocabulario_ingredientes, max_df=1.0, min_df=1, stop_words=None)
 
-    print("Número de colunas no TF-IDF:", len(tfidf_vectorizer.vocabulary_), flush=True)
 
     # Preparar as strings de ingredientes das receitas
     recipes_df = pd.read_csv('data/recipes_levenshtein.csv')
@@ -90,16 +89,11 @@ def calculate_similarity(mapped_items_manual):
     top_3_indices = cosine_similarities.argsort()[-3:][::-1]  # Seleciona os 3 melhores
 
     # Opcional: Ver os resultados
-    print("Vetor TF-IDF da Nota Fiscal:")
-    print(tfidf_nota.toarray()[0])
-
-    for idx in top_3_indices:
-        print(f"\nVetor TF-IDF da Receita {idx}:")
-        print(tfidf_receitas[idx].toarray()[0])
-
     top_3_scores = cosine_similarities[top_3_indices]
     print("Melhores índices:", top_3_indices, flush=True)
     print("Scores de similaridade:", top_3_scores, flush=True)
+    print("Número de colunas no TF-IDF:", len(tfidf_vectorizer.vocabulary_), flush=True)
+
 
     if top_3_scores[0] < 0.1:
         return {'message': 'Nenhuma receita relevante encontrada', 'scores': top_3_scores.tolist()}
