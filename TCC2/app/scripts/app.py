@@ -1,3 +1,4 @@
+import Levenshtein
 import pandas as pd
 import numpy as np
 import re
@@ -20,26 +21,13 @@ def ordenar_instrucoes(instrucoes):
     return instrucoes_ordenadas
 
 def levenshtein_distance(s1, s2):
-    if len(s1) < len(s2):
-        return levenshtein_distance(s2, s1)
-    if len(s2) == 0:
-        return len(s1)
-    previous_row = range(len(s2) + 1)
-    for i, c1 in enumerate(s1):
-        current_row = [i + 1]
-        for j, c2 in enumerate(s2):
-            insertions = previous_row[j + 1] + 1
-            deletions = current_row[j] + 1
-            substitutions = previous_row[j] + (c1 != c2)
-            current_row.append(min(insertions, deletions, substitutions))
-        previous_row = current_row
-    return previous_row[-1]
+    distance = Levenshtein.distance(s1, s2)
+    return distance
 
 def find_best_match_manual(item, ingredients):
-    first_word_item = item.split()[0]
-    distances = [levenshtein_distance(first_word_item, ingredient) for ingredient in ingredients]
+    distances = [levenshtein_distance(item, ingredient) for ingredient in ingredients]
     min_distance_index = np.argmin(distances)
-    return ingredients[min_distance_index]
+    return ingredients[min_distance_index].split(" ")[0]
 
 def load_ingredients():
     global cached_ingredients_list
