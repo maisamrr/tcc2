@@ -62,18 +62,12 @@ class _HomeState extends State<Home> {
    @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundIdColor,
+      backgroundColor: lightGreyColor,
       body: Stack(
         children: [
           Positioned.fill(
             child: Stack(
               children: [
-                Positioned.fill(
-                  child: Image.asset(
-                    'assets/images/back05.png',
-                    fit: BoxFit.cover,
-                  ),
-                ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
