@@ -36,7 +36,8 @@ def levenshtein_distance(s1, s2):
     return previous_row[-1]
 
 def find_best_match_manual(item, ingredients):
-    distances = [levenshtein_distance(item, ingredient) for ingredient in ingredients]
+    first_word_item = item.split()[0]
+    distances = [levenshtein_distance(first_word_item, ingredient) for ingredient in ingredients]
     min_distance_index = np.argmin(distances)
     return ingredients[min_distance_index]
 
