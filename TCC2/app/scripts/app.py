@@ -136,7 +136,7 @@ def process_note():
     ingredients_list = load_ingredients()
     cleaned_items = clean_extracted_data(processed_items)
     mapped_items_manual = map_items_to_ingredients(cleaned_items, ingredients_list)
-    print("Itens antes do TF-IDF: " +  mapped_items_manual, flush= True)
+    print(f"Itens antes do TF-IDF: {mapped_items_manual}", flush= True)
     top_3_recipes = calculate_similarity(mapped_items_manual)
     if 'message' in top_3_recipes:
         return jsonify(top_3_recipes), 200
